@@ -1,0 +1,35 @@
+{% extends 'admin/model/details.html' %}
+
+{% block body %}
+<style>caption { caption-side: top; }</style>
+<div class="h1 text-center">{{ model.name }}</div>
+{% block details_table %}
+{% if admin_view.get_details_grouped %}
+{% set groups = admin_view.get_details_grouped() %}
+{% for group in groups %}
+<table class="table">
+  <tr>
+    <td class="field-name h4">{{ group | capitalize }}</td>
+  </tr>
+  {% for i in groups[group] %}
+  <tr>
+    <td class="field-name w-50"><b>{{ i[1] }}</b></td>
+    <td class="w-50">
+      {{ get_value(model, i[0]) | replace("\n", "<br>") | safe }}
+    </td>
+  </tr>
+  {% endfor %}
+</table>
+{% endfor %}
+{% else %}
+<table class="table">
+  {% for c, name in details_columns %}
+  <tr>
+    <td class="field-name"><b>{{ name }}</b></td>
+    <td>{{ get_value(model, c) }}</td>
+  </tr>
+  {% endfor %}
+</table>
+{% endif %}
+{% endblock %}
+{% endblock %}

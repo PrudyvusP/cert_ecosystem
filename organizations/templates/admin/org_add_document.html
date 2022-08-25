@@ -1,0 +1,84 @@
+{% extends "admin/base.html" %}
+{% block body %}
+{% if form %}
+<form action="" method="post" enctype="multipart/form-data">
+  {{ form.csrf_token() }}
+  <div class="row mt-2">
+    <div class="col-8">
+      {{ form.organization_name.label }}
+      {{ form.organization_name(class="form-control", disabled=True) }}
+    </div>
+  </div>
+  <div class="row mt-2">
+    <div class="col-8">
+      {{ form.org_documents.label(class="mt-2") }}
+      {{ form.org_documents(class="custom-select", size="6") }}
+      {% for error in form.org_documents.errors %}
+      <span style="color:red;">{{ error }}</span>
+      {% endfor %}
+    </div>
+    <div class="col-2">
+      <div class="mt-2">Документ закрытый?<br>
+        <label for="chkYes">
+          <input type="radio" id="chkYes" name="check secrecy" onclick="ShowHideDiv()">
+          Да
+        </label>
+        <label for="chkNo">
+          <input type="radio" id="chkNo" name="check secrecy" checked onclick="ShowHideDiv()">
+          Нет
+        </label>
+      </div>
+    </div>
+  </div>
+  <div class="row mt-2">
+    <div class="col-4">
+      {{ form.date_approved.label }}
+      {{ form.date_approved(class="form-control") }}
+      {% for error in form.date_approved.errors %}
+      <span style="color:red;">{{ error }}</span>
+      {% endfor %}
+    </div>
+    <div class="col-4">
+      {{ form.props.label }}
+      {{ form.props(class="form-control") }}
+      {% for error in form.props.errors %}
+      <span style="color:red;">{{ error }}</span>
+      {% endfor %}
+    </div>
+  </div>
+  <div class="row mt-3">
+    <div class="col-4">
+      {{ form.our_inbox_number.label }}
+      {{ form.our_inbox_number(class="form-control") }}
+      {% for error in form.our_inbox_number.errors %}
+      <span style="color:red;">{{ error }}</span>
+      {% endfor %}
+    </div>
+    <div class="col-4">
+      {{ form.doc_file.label }}
+      {{ form.doc_file(class="btn btn-sm btn-outline-dark", id="file") }}
+      {% for error in form.doc_file.errors %}
+      <span style="color:red;">{{ error }}</span>
+      {% endfor %}
+      <div class="text-muted"> файл должен иметь расширение .pdf <br>
+        не должен превышать 100 мб!!!
+      </div>
+    </div>
+  </div>
+  <div class="row mt-2">
+    <div class="col-9">
+      {{ form.submit(class="btn btn-dark btn-block") }}
+    </div>
+  </div>
+</form>
+{% endif %}
+
+<script>
+    function ShowHideDiv() {
+    var chkYes = document.getElementById("chkYes");
+    var file = document.getElementById("file");
+    file.disabled = chkNo.checked ? "disabled" : true;
+    file.disabled = chkYes.checked ? "disabled" : false;
+    }
+</script>
+{% endblock %}

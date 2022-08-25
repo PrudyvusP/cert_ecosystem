@@ -1,0 +1,14 @@
+{% extends 'admin/model/list.html' %}
+
+{% block list_row_actions %}
+    {{ super() }}
+    <a class="icon"
+       href="{{ url_for('organization.org_documents_view', org_id=get_pk_value(row)) }}"
+       title="">
+    <span class="fa fa-paperclip glyphicon glyphicon-paperclip"></span>
+    </a>
+{% endblock %}
+
+<!--
+https://github.com/flask-admin/flask-admin/issues/998
+-->

@@ -127,3 +127,11 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# App exclude
+/data_storage/EGRUL_DATA/
+/.env
+*.db
+/conf_data.py
+/organizations/static/organizations/
+*.dbf

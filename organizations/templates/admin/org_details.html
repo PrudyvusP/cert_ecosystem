@@ -1,0 +1,138 @@
+{% extends 'admin/model/details.html' %}
+
+{% macro fill_data_or_none(name, sep='—') -%}
+<td class="align-middle">
+  {% if name %}{{ name }}{% else %}{{ sep }}{% endif %}
+</td>
+{%- endmacro %}
+
+{% block body %}
+<style>caption { caption-side: top; }</style>
+<div class="h1 text-center">{{ model.full_name }}</div>
+{% block details_table %}
+{% if admin_view.get_details_grouped %}
+{% set groups = admin_view.get_details_grouped() %}
+{% for group in groups %}
+<table class="table">
+  <tr>
+    <td class="field-name h4">{{ group | capitalize }}</td>
+  </tr>
+  {% for i in groups[group] %}
+  <tr>
+    <td class="field-name w-50"><b>{{ i[1] }}</b></td>
+    <td class="w-50">
+      {{ get_value(model, i[0]) | replace("\n", "<br>") | safe }}
+    </td>
+  </tr>
+  {% endfor %}
+</table>
+{% endfor %}
+{% else %}
+<table class="table">
+  {% for c, name in details_columns %}
+  <tr>
+    <td class="field-name"><b>{{ name }}</b></td>
+    <td>{{ get_value(model, c) }}</td>
+  </tr>
+  {% endfor %}
+</table>
+{% endif %}
+
+{% if model.org_adm_doc %}
+<table class="table">
+  <tr>
+    <td class="field-name h4">Организационно-распорядительные документы</td>
+  </tr>
+  <tr>
+    <th class="align-middle">Название документа</th>
+    <th class="align-middle">Дата утверждения</th>
+    <th class="align-middle">Реквизиты</th>
+    <th class="align-middle">Файл</th>
+  </tr>
+  {% for doc in model.org_adm_doc %}
+  <tr>
+    <td class="align-middle">{{ doc.org_doc.name }}</td>
+    <td class="align-middle">{% if doc.date_approved %}
+      {{ doc.date_approved.strftime("%d-%m-%Y") }}
+      {% endif %}
+    </td>
+    {{ fill_data_or_none(doc.props) }}
+    <td class="align-middle">
+      <a href="{{ url_for('organization.return_org_document',
+                            doc_id=doc.orgadm_id,
+                            org_id=model.org_id) }}">
+        <span class="fa fa-save glyphicon glyphicon-save"></span>
+      </a>
+    </td>
+  </tr>
+  {% endfor %}
+</table>
+{% endif %}
+
+{% if model.messages %}
+<table class="table">
+  <tr>
+    <td class="field-name h4">Переписка</td>
+  </tr>
+  <tr>
+    <th class="align-middle">Тип</th>
+    <th class="align-middle">Дата подписи</th>
+    <th class="align-middle">Номер письма</th>
+    <th class="align-middle">Наш входящий номер</th>
+    <th class="align-middle">Дата регистрации</th>
+    <th class="align-middle">Информация</th>
+  </tr>
+  {% for message in model.messages %}
+  <tr>
+    {% if message.is_outgoing %}
+    <td class="align-middle">Исх</td>
+    <td class="align-middle">{{ message.date_approved.strftime("%d-%m-%Y") }}</td>
+    <td class="align-middle">{{ message.our_outbox_number }}</td>
+    <td class="align-middle">—</td>
+    <td class="align-middle">—</td>
+    {% else %}
+    <td class="align-middle">Вх</td>
+    <td class="align-middle">{{ message.date_inbox_approved.strftime("%d-%m-%Y") }}</td>
+    <td class="align-middle">{{ message.number_inbox_approved }}</td>
+    <td class="align-middle">{{ message.our_inbox_number }}</td>
+    <td class="align-middle">{{ message.date_registered.strftime("%d-%m-%Y") }}</td>
+    {% endif %}
+    <td class="align-middle">
+      <a href="{{ url_for('message.details_view',
+                            id=message.message_id) }}">
+        {{ message.information }}
+      </a>
+    </td>
+  </tr>
+  {% endfor %}
+</table>
+{% endif %}
+
+{% if model.resources %}
+<table class="table">
+  <tr>
+    <td class="field-name h4">Ресурсы</td>
+  </tr>
+  <tr>
+    <th class="align-middle">Название</th>
+    <th class="align-middle">Рег. №</th>
+    <th class="align-middle">Категория</th>
+    <th class="align-middle">Регионы размещения</th>
+  </tr>
+  {% for resource in model.resources %}
+  <tr>
+    <td class="align-middle">
+      <a href="{{ url_for('resource.details_view',
+                           id=resource.resource_id) }}">
+        {{ resource.name }}
+      </a>
+    </td>
+    {{ fill_data_or_none(resource.fstec_reg_number) }}
+    {{ fill_data_or_none(resource.category) }}
+    {{ fill_data_or_none(resource.regions|join(", ") ) }}
+  </tr>
+  {% endfor %}
+</table>
+{% endif %}
+{% endblock %}
+{% endblock %}
