@@ -74,7 +74,6 @@ def get_beautiful_org_formatter(instance: ModelView) -> dict:
             [
                 ('is_gov', instance.column_labels['is_gov']),
                 ('is_military', instance.column_labels['is_military']),
-                ('is_ampel', instance.column_labels['is_ampel']),
                 ('is_subject_kii', instance.column_labels['is_subject_kii'])
             ],
         'Техническая информация':
@@ -92,15 +91,19 @@ def get_beautiful_res_formatter(instance: ModelView) -> dict:
         'Принадлежность к ОКИИ':
             [
                 ('is_okii', instance.column_labels['is_okii']),
-                ('fstec_reg_number', instance.column_labels['fstec_reg_number']),
+                ('fstec_reg_number',
+                 instance.column_labels['fstec_reg_number']),
                 ('category', instance.column_labels['category']),
-                ('date_added_to_fstec', instance.column_labels['date_added_to_fstec']),
-                ('date_updated_to_fstec', instance.column_labels['date_updated_to_fstec']),
+                ('date_added_to_fstec',
+                 instance.column_labels['date_added_to_fstec']),
+                ('date_updated_to_fstec',
+                 instance.column_labels['date_updated_to_fstec']),
                 ('industries', instance.column_labels['industries']),
             ],
         'Географическая информация':
             [
-                ('factual_addresses', instance.column_labels['factual_addresses']),
+                ('factual_addresses',
+                 instance.column_labels['factual_addresses']),
                 ('regions', instance.column_labels['regions']),
             ],
         'Техническая информация':
@@ -131,7 +134,6 @@ organization_fields_descriptions = dict(
                    ' в соответствии с соглашением о сотрудничестве',
     is_gov='Является ли организация государственной',
     is_military='Является ли организация военной',
-    is_ampel='Является ли организация значимой',
     region='Регион, в котором зарегистрирована организация',
     is_subject_kii='Является ли организация субъектом КИИ',
     is_active='Статус организации (Существующая или ликвидирована)'
@@ -147,7 +149,7 @@ organization_fields_labels = dict(
     contacts='Контакты',
     date_agreement='Дата подписания соглашения',
     agreement_unit='Главное подразделение',
-    is_gov='ГОВ', is_military='ВОЕН', is_ampel='СВЕТ',
+    is_gov='ГОВ', is_military='ВОЕН',
     db_name='Название организации', region='Регион',
     is_subject_kii='СКИИ',
     date_added='Дата внесения в БД',

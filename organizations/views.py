@@ -4,9 +4,10 @@ from datetime import date
 from http import HTTPStatus
 from typing import List, Tuple
 
+from config import Config
 from flask import Markup
 from flask import flash, url_for, redirect, abort, send_file
-from flask_admin import expose, AdminIndexView
+from flask_admin import AdminIndexView, BaseView, expose
 from flask_admin.contrib.sqla import ModelView
 from flask_admin.contrib.sqla.ajax import QueryAjaxModelLoader
 from flask_admin.form.rules import FieldSet
@@ -14,20 +15,22 @@ from flask_admin.model import typefmt
 from sqlalchemy import func
 from wtforms.validators import Length, InputRequired, Optional
 
-import data_storage.dictionary as dictionary
-from config import Config
+import organizations.forms_placeholders as dictionary
 from .exceptions import (OrgFileNotSavedError, DirNotCreatedError,
                          OrgPDFNotCreatedError, ModelAttributeError)
 from .extentions import db
 from .filters import (OrgRegionFilter,
                       OrgHasAgreementFilter, OrgIsSubjectKIIFilter,
                       OrgHasHadAnyContactsWithUsFilter, OrgDocumentsFilter,
-                      ResourceRegionFilter, ResourceIndustryFilter, ResourceOkrugFilter)
-from .forms import AddSubjectDocumentForm, validate_future_date, validate_inn, validate_ogrn
+                      ResourceRegionFilter, ResourceIndustryFilter,
+                      ResourceOkrugFilter)
+from .forms import (AddSubjectDocumentForm, validate_future_date,
+                    validate_inn, validate_ogrn)
 from .models import (Organization, Region, OrgAdmDoc,
                      OrgAdmDocOrganization, Message, Address, Industry, Okrug)
 from .utils import (create_pdf, create_prefix, create_dot_pdf,
                     get_alpha_num_string, create_a_href_string)
+
 
 CHOOSE_MAIN_MESSAGE_TEXT = "Выберете письмо-основание"
 CHOOSE_MULT_ORG_TEXT = "Выберете организацию (-и)"
@@ -94,11 +97,11 @@ def org_list_formatter(view, context, model, name) -> str:
         results = []
         if isinstance(org_data, Organization):
             org_full_name = getattr(org_data, "full_name")
-            url = url_for("organization.details_view", id=org_data.org_id)
+            url = url_for("organizations.details_view", id=org_data.org_id)
             return Markup(create_a_href_string(url, org_full_name))
         else:
             for org in org_data:
-                url = url_for("organization.details_view", id=org.org_id)
+                url = url_for("organizations.details_view", id=org.org_id)
                 full_url = create_a_href_string(url, org.full_name)
                 results.append(full_url)
             markup_string = "<br><br>".join(results)
@@ -179,6 +182,13 @@ class HomeView(AdminIndexView):
 
     def is_visible(self):
         return False
+
+
+class WorkspaceView(BaseView):
+    @expose('/', methods=['GET', 'POST'])
+    def index(self):
+        return "rofel-fm"
+        #return self.render('analytics_index.html')
 
 
 class OrgAdmDocModelView(ModelView):
@@ -336,7 +346,7 @@ class OrganizationModelView(CreateRetrieveUpdateModelView):
     # MAIN options
     column_export_exclude_list = ['uuid', 'org_id', 'db_name',
                                   'date_added', 'is_gov', 'is_military',
-                                  'is_ampel', 'date_updated']
+                                  'date_updated', 'is_active']
 
     # LIST options
     list_template = 'admin/org_list.html'
@@ -348,14 +358,12 @@ class OrganizationModelView(CreateRetrieveUpdateModelView):
                            'date_updated', 'region_id', 'ogrn', 'db_name',
                            'agreement_unit', 'boss_fio', 'is_gov',
                            'boss_position', 'factual_address',
-                           'is_military', 'is_ampel']
-    column_filters = ('inn',
-                      'db_name',
+                           'is_military']
+    column_filters = ('db_name',
                       OrgHasHadAnyContactsWithUsFilter(
                           Organization,
                           'Наличие взаимодействия'
                       ),
-                      'ogrn',
                       OrgHasAgreementFilter(
                           Organization.date_agreement,
                           'Соглашение о сотрудничестве'
@@ -367,14 +375,12 @@ class OrganizationModelView(CreateRetrieveUpdateModelView):
     column_formatters_export = dict(
         is_gov=lambda v, c, m, p: '+' if m.is_gov is True else '-',
         is_military=lambda v, c, m, p: '+' if m.is_military is True else '-',
-        is_ampel=lambda v, c, m, p: '+' if m.is_ampel is True else '-',
         is_active=lambda v, c, m, p: '+' if m.is_active is True else '-')
 
     column_labels = dictionary.organization_fields_labels
-    column_searchable_list = ['db_name']
+    column_searchable_list = ['db_name', 'inn']
     column_sortable_list = ('full_name', ('region', 'region.name'),
-                            'date_agreement', 'is_gov', 'is_military',
-                            'is_ampel', 'inn')
+                            'date_agreement', 'is_gov', 'is_military', 'inn')
 
     # RETRIEVE OPTIONS
     details_template = 'admin/org_details.html'
@@ -384,7 +390,7 @@ class OrganizationModelView(CreateRetrieveUpdateModelView):
                            'factual_address', 'region',
                            'boss_position', 'boss_fio', 'contacts',
                            'date_agreement', 'agreement_unit', 'is_gov',
-                           'is_military', 'is_ampel', 'is_subject_kii',
+                           'is_military', 'is_subject_kii',
                            'uuid', 'date_added', 'date_updated')
 
     # CREATE / UPDATE options
@@ -403,7 +409,7 @@ class OrganizationModelView(CreateRetrieveUpdateModelView):
                  'Контактные данные'),
         FieldSet(('date_agreement', 'agreement_unit'),
                  'Соглашение о сотрудничестве'),
-        FieldSet(('is_gov', 'is_military', 'is_ampel', 'is_active'),
+        FieldSet(('is_gov', 'is_military'),
                  'Характеристики организации'))
     form_widget_args = dictionary.organization_fields_placeholders
 
@@ -502,7 +508,7 @@ class OrganizationModelView(CreateRetrieveUpdateModelView):
                     raise OrgPDFNotCreatedError(BASE_PDF_NOT_CREATED_MSG)
             db.session.commit()
             flash(SUCCESS_DATA_UPLOAD_MSG)
-            return redirect(url_for("organization.details_view",
+            return redirect(url_for("organizations.details_view",
                                     id=org.org_id)
                             )
         return self.render('admin/org_add_document.html', form=form)

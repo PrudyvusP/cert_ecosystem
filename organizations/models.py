@@ -108,9 +108,8 @@ class Organization(DateAddedCreatedMixin, db.Model):
     db_name = db.Column(db.Text, nullable=False, index=True)
     full_name = db.Column(db.Text, nullable=False)
     short_name = db.Column(db.Text)
-    ## ИНН лучше хранить в строке
-    inn = db.Column(db.BigInteger, index=True)
-    ogrn = db.Column(db.BigInteger, index=True)
+    inn = db.Column(db.String(10), index=True)
+    ogrn = db.Column(db.String(13), index=True)
     factual_address = db.Column(db.Text)
     boss_position = db.Column(db.String(200))
     boss_fio = db.Column(db.String(200))
@@ -119,7 +118,6 @@ class Organization(DateAddedCreatedMixin, db.Model):
     agreement_unit = db.Column(db.Text)
     is_gov = db.Column(db.Boolean, default=False)
     is_military = db.Column(db.Boolean, default=False)
-    is_ampel = db.Column(db.Boolean, default=False)
     is_active = db.Column(db.Boolean, default=True)
 
     uuid = db.Column(db.String(36), default=generate_uuid,
@@ -158,7 +156,7 @@ class Organization(DateAddedCreatedMixin, db.Model):
     def __init__(self, full_name, short_name=None, ogrn=None, inn=None,
                  factual_address=None, boss_position=None, boss_fio=None,
                  contacts=None, date_agreement=None, agreement_unit=None,
-                 is_gov=False, is_military=False, is_ampel=False,
+                 is_gov=False, is_military=False,
                  is_active=True, region=None):
         self.full_name = full_name
         self.short_name = short_name
@@ -172,7 +170,6 @@ class Organization(DateAddedCreatedMixin, db.Model):
         self.agreement_unit = agreement_unit
         self.is_gov = is_gov
         self.is_military = is_military
-        self.is_ampel = is_ampel
         self.is_active = is_active
         self.region = region
 
@@ -335,7 +332,7 @@ class Responsibility(db.Model):
         return f"#{self.resource.name} by {self.organization.short_name}"
 
 
-class Industry(DateAddedCreatedMixin, db.Model):
+class Industry(db.Model):
     """Модель сферы деятельности информационного ресурса."""
     __tablename__ = "industries"
     industry_id = db.Column(db.Integer, primary_key=True)
@@ -354,7 +351,7 @@ class Industry(DateAddedCreatedMixin, db.Model):
 class Region(db.Model):
     """Модель региона."""
     __tablename__ = "regions"
-    region_id = db.Column(db.Integer, primary_key=True, nullable=False)
+    region_id = db.Column(db.String(6), primary_key=True, nullable=False)
 
     name = db.Column(db.String(70), nullable=False)
 
@@ -415,7 +412,6 @@ class MethodicalDoc(DateAddedCreatedMixin, db.Model):
     """Модель методического документа."""
     __tablename__ = "methodical_docs"
     method_id = db.Column(db.Integer, primary_key=True)
-
     name = db.Column(db.Text, nullable=False)
     date_approved = db.Column(db.Date)
     props = db.Column(db.Text)

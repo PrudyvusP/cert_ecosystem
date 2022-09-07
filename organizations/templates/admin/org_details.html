@@ -58,7 +58,7 @@
     </td>
     {{ fill_data_or_none(doc.props) }}
     <td class="align-middle">
-      <a href="{{ url_for('organization.return_org_document',
+      <a href="{{ url_for('organizations.return_org_document',
                             doc_id=doc.orgadm_id,
                             org_id=model.org_id) }}">
         <span class="fa fa-save glyphicon glyphicon-save"></span>
@@ -98,7 +98,7 @@
     <td class="align-middle">{{ message.date_registered.strftime("%d-%m-%Y") }}</td>
     {% endif %}
     <td class="align-middle">
-      <a href="{{ url_for('message.details_view',
+      <a href="{{ url_for('messages.details_view',
                             id=message.message_id) }}">
         {{ message.information }}
       </a>
@@ -122,7 +122,7 @@
   {% for resource in model.resources %}
   <tr>
     <td class="align-middle">
-      <a href="{{ url_for('resource.details_view',
+      <a href="{{ url_for('resources.details_view',
                            id=resource.resource_id) }}">
         {{ resource.name }}
       </a>

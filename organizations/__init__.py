@@ -7,8 +7,8 @@ from .extentions import db, babel, migrate
 from .models import (Organization, Resource, OrgAdmDoc,
                      Message)
 from .views import (OrgAdmDocModelView, MessageModelView,
-                    OrganizationModelView, ResourceModelView, HomeView)
-from api import api_bp
+                    OrganizationModelView, ResourceModelView, HomeView,
+                    WorkspaceView)
 
 
 def init_admin(app):
@@ -26,7 +26,8 @@ def init_admin(app):
             Organization,
             db.session,
             name='Организации',
-            category="Организации")
+            category="Организации",
+            endpoint='organizations')
     )
 
     admin.add_view(
@@ -34,25 +35,34 @@ def init_admin(app):
             OrgAdmDoc,
             db.session,
             name='Документы',
-            category="Организации")
+            category="Организации",
+            endpoint='documents')
     )
 
     admin.add_view(
         MessageModelView(
             Message,
             db.session,
-            name='Письма')
+            name='Письма',
+            endpoint='messages')
     )
 
     admin.add_view(
         ResourceModelView(
             Resource,
             db.session,
-            name='Информационные ресурсы')
+            name='Информационные ресурсы',
+            endpoint='resources')
+    )
+
+    admin.add_view(
+        WorkspaceView(
+            name='Поиск в ЕГРЮЛ',
+            endpoint='workspace')
     )
 
 
-def create_app(config='test'):
+def create_app(config='dev'):
     """Создает инстанс приложения."""
 
     conf_types = {'dev': DevConfig,
@@ -66,7 +76,6 @@ def create_app(config='test'):
     init_admin(app)
     babel.init_app(app)
     app.cli.add_command(index)
-    app.register_blueprint(api_bp, url_prefix='/api')
 
     @app.shell_context_processor
     def make_shell_context():

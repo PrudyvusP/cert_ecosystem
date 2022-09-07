@@ -9,8 +9,6 @@ from wtforms.validators import (InputRequired, Optional,
 MESSAGE_DATE_TODAY_TEXT = "Дата подписи должна быть не позднее сегодня"
 ORG_INN_NOT_CORRECT_TEXT = "Введите корректный ИНН"
 ORG_OGRN_NOT_CORRECT_TEXT = "Введите корректный ОГРН"
-INN_MAX_CONST = 9999999999999
-INN_MIN_CONST = 1000000000000
 
 
 def validate_future_date(form, field):
@@ -29,7 +27,7 @@ def validate_inn(form, field):
 
 def validate_ogrn(form, field):
     """Проверяет строку на соответствие шаблону ОГРН (13 цифр)."""
-    if field.data > INN_MAX_CONST or field.data < INN_MIN_CONST:
+    if len(field.data) != 13:
         raise ValidationError(ORG_OGRN_NOT_CORRECT_TEXT)
 
 

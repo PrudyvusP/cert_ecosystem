@@ -18,18 +18,6 @@ class OrgFileNotSavedError(Exception):
     pass
 
 
-class IndustriesNotAddedError(Exception):
-    pass
-
-
-class OkrugsNotAddedError(Exception):
-    pass
-
-
-class RegionsNotAddedError(Exception):
-    pass
-
-
 class AddressesNotAddedError(Exception):
     pass
 

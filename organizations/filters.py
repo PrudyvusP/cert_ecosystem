@@ -50,11 +50,13 @@ class OrgIsSubjectKIIFilter(filters.BaseSQLAFilter):
     чьи ресурсы являются объектами КИИ."""
 
     def apply(self, query, value, alias=None):
-        subjects_kii_ids = (db.session.query(
-            Organization.org_id.distinct())
-                            .join(Resource, Organization.resources)
-                            .filter(Resource.is_okii.is_(True))
-                            )
+        subjects_kii_ids = (
+            db.session.query(
+                Organization.org_id.distinct()
+            ).join(Resource, Organization.resources)
+            .filter(Resource.is_okii.is_(True)
+                    )
+        )
         if value == "да":
             return query.filter(Organization.org_id.in_(subjects_kii_ids))
         return query.filter(Organization.org_id.not_in(subjects_kii_ids))
@@ -110,24 +112,27 @@ class OrgHasHadAnyContactsWithUsFilter(filters.BaseSQLAFilter):
 
 class ResourceRegionFilter(filters.FilterInList):
     def apply(self, query, value, alias=None):
-        return (query.join(
-            Region, Resource.regions)
-                .filter(Region.region_id.in_(value))
+        return (query
+                .join(Region, Resource.regions)
+                .filter(Region.region_id.in_(value)
+                        )
                 )
 
 
 class ResourceIndustryFilter(filters.FilterInList):
     def apply(self, query, value, alias=None):
-        return (query.join(
-            Industry, Resource.industries)
-                .filter(Industry.industry_id.in_(value))
+        return (query
+                .join(Industry, Resource.industries)
+                .filter(Industry.industry_id.in_(value)
+                        )
                 )
 
 
 class ResourceOkrugFilter(filters.FilterInList):
     def apply(self, query, value, alias=None):
-        return (query.join(
-            Region, Resource.regions)
+        return (query
+                .join(Region, Resource.regions)
                 .join(Okrug, Region.okrug)
-                .filter(Region.okrug_id.in_(value))
+                .filter(Region.okrug_id.in_(value)
+                        )
                 )

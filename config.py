@@ -43,8 +43,10 @@ class ProdConfig(Config):
 class DevConfig(Config):
     """Настройки для разработки."""
     FLASK_ENV = 'development'
-    SQLALCHEMY_DATABASE_URI = ('sqlite:///' +
-                               os.path.join(basedir, 'data.db'))
+    SQLALCHEMY_DATABASE_URI = ('sqlite:///'
+                               + os.path.join(basedir,
+                                              'data.db')
+                               )
 
 
 class TestConfig(Config):
@@ -52,5 +54,7 @@ class TestConfig(Config):
     FLASK_ENV = 'testing'
     TESTING = True
     SQLALCHEMY_ECHO = True
-    SQLALCHEMY_DATABASE_URI = ('sqlite:///' +
-                               os.path.join(basedir, 'test_data.db'))
+    SQLALCHEMY_DATABASE_URI = ('sqlite:///'
+                               + os.path.join(basedir,
+                                              'test_data.db')
+                               )
