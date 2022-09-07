@@ -35,7 +35,7 @@ def find_db_indexes(filename: str) -> set:
     """Возвращает разницу между количеством почтовых индексов
     в БД и переданном файле."""
     db_indexes = set(i for i, in db.session.query(Address.index))
-    file_indexes = set(int(i.get('INDEX')) for i in DBF(filename))
+    file_indexes = set(i.get('INDEX') for i in DBF(filename))
     new_indexes = file_indexes - db_indexes
     return new_indexes
 
@@ -49,7 +49,7 @@ def fill_db_with_addresses_delta(filename: str) -> None:
     regions = {item.name: item.region_id for item in Region.query.all()}
     for address in addresses:
         try:
-            index = int(address.get('INDEX'))
+            index = address.get('INDEX')
             if index in new_indexes:
                 if address.get('REGION'):
                     dbf_region = address.get('REGION')
