@@ -69,14 +69,14 @@ def upgrade():
                     sa.ForeignKeyConstraint(['method_id'], ['methodical_docs.method_id'], ondelete='CASCADE')
                     )
     op.create_table('regions',
-                    sa.Column('region_id', sa.String(length=6), nullable=False),
+                    sa.Column('region_id', sa.Integer(), nullable=False),
                     sa.Column('name', sa.String(length=70), nullable=False),
                     sa.Column('okrug_id', sa.Integer(), nullable=True),
                     sa.ForeignKeyConstraint(['okrug_id'], ['okrugs.okrug_id'], ondelete='SET NULL'),
                     sa.PrimaryKeyConstraint('region_id')
                     )
     op.create_table('addresses',
-                    sa.Column('index', sa.Integer(), nullable=False),
+                    sa.Column('index', sa.String(length=6), nullable=False),
                     sa.Column('area', sa.String(length=40), nullable=True),
                     sa.Column('locality', sa.String(length=60), nullable=True),
                     sa.Column('region_id', sa.Integer(), nullable=True),

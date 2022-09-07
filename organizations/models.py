@@ -351,7 +351,7 @@ class Industry(db.Model):
 class Region(db.Model):
     """Модель региона."""
     __tablename__ = "regions"
-    region_id = db.Column(db.String(6), primary_key=True, nullable=False)
+    region_id = db.Column(db.Integer, primary_key=True, nullable=False)
 
     name = db.Column(db.String(70), nullable=False)
 
@@ -395,7 +395,7 @@ class Okrug(db.Model):
 class Address(db.Model):
     """Модель адреса почтового отделения."""
     __tablename__ = "addresses"
-    index = db.Column(db.Integer, primary_key=True, nullable=False)
+    index = db.Column(db.String(6), primary_key=True, nullable=False)
 
     area = db.Column(db.String(40))
     locality = db.Column(db.String(60), index=True)
