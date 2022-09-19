@@ -4,8 +4,8 @@ from flask_sqlalchemy import BaseQuery
 from sqlalchemy.orm import backref
 
 from .extentions import db
-from .utils import generate_uuid, get_quick_query_count
-from .utils import get_alpha_num_string
+from .utils import (generate_uuid, get_alpha_num_string,
+                    get_quick_query_count)
 
 regions_resources_table = db.Table(
     "regions_resources",

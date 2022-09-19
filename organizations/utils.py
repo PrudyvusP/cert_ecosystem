@@ -1,9 +1,12 @@
 import re
 import uuid
+from typing import List, Tuple
 
 from fpdf import FPDF
 from pytils import translit
 from sqlalchemy import func
+
+from .exceptions import ModelAttributeError
 
 
 def create_pdf(destination: str) -> None:
@@ -54,3 +57,21 @@ def get_quick_query_count(query) -> int:
 def create_a_href_string(link: str, text: str) -> str:
     """Создает из переданных строк кликабельную ссылку."""
     return f"<a href={link}>{text}</a>"
+
+
+def get_instance_choices(model,
+                         _id: str = "id",
+                         _name: str = "name",
+                         _name_limiter: int = None,
+                         ) -> List[Tuple[int, str]]:
+    """Возвращает опции для html-элемента SelectField
+    переданной в функцию модели."""
+    try:
+        _id = getattr(model, _id)
+        _name = getattr(model, _name)
+    except AttributeError:
+        raise ModelAttributeError
+    q = model.query.with_entities(_id, _name).order_by(_name).all()
+    if not _name_limiter:
+        return q
+    return [(param[0], param[1][:_name_limiter]) for param in q]

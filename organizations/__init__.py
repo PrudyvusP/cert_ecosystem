@@ -1,20 +1,24 @@
 from flask import Flask
 from flask_admin import Admin
 
-from config import DevConfig, ProdConfig, TestConfig
-from .commands import index
-from .extentions import db, babel, migrate
-from .models import (Organization, Resource, OrgAdmDoc,
-                     Message)
-from .views import (OrgAdmDocModelView, MessageModelView,
-                    OrganizationModelView, ResourceModelView, HomeView,
-                    WorkspaceView)
+from cert_ecosystem.config import DevConfig, ProdConfig, TestConfig
+from cert_ecosystem.organizations.commands import index
+from cert_ecosystem.organizations.extentions import db, babel, migrate
+from cert_ecosystem.organizations.models import (Organization, Resource,
+                                                 OrgAdmDoc, Message)
+from cert_ecosystem.organizations.views.home_view import HomeView
+from cert_ecosystem.organizations.views.message import MessageModelView
+from cert_ecosystem.organizations.views.orgadmdoc import OrgAdmDocModelView
+from cert_ecosystem.organizations.views.organization import OrganizationModelView
+from cert_ecosystem.organizations.views.resource import ResourceModelView
+from cert_ecosystem.organizations.views.workspace import WorkspaceView
 
 
 def init_admin(app):
     admin = Admin(name='GP',
                   template_mode='bootstrap4',
                   url='/',
+                  base_template='admin/custom_master.html',
                   index_view=HomeView(name='Главная',
                                       template='admin/index.html',
                                       url='/'))

@@ -1,0 +1,27 @@
+{% extends 'admin/master.html' %}
+
+{% block body %}
+<p class="mt-2"> Найдено организаций: {{ count }}</p>
+  <table class="table table-hover table-sm text-center">
+    <thead>
+    <tr>
+      <th class="align-middle">№</th>
+      <th class="align-middle">Полное название организации</th>
+      <th class="align-middle">Сокращенное название организации</th>
+      <th class="align-middle">ИНН</th>
+    </tr>
+    </thead>
+    {% for found_organization in found_organizations %}
+      <tr>
+      <td class="align-middle">{{ loop.index }}.</td>
+      <td class="align-middle">
+        <a href="http://localhost{{ found_organization['url'] }}">
+          {{ found_organization['full_name'] }}
+        </a>
+      </td>
+      <td class="align-middle">{{ found_organization['short_name'] }}</td>
+      <td class="align-middle">{{ found_organization['inn'] }}</td>
+      </tr>
+    {% endfor %}
+  </table>
+{% endblock %}

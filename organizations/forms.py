@@ -59,7 +59,7 @@ class AddSubjectDocumentForm(BaseFormWithSubmit):
     props = wtforms.StringField("Реквизиты документа:",
                                 validators=[Optional()],
                                 render_kw={
-                                    "placeholder": "Могут отстутствовать"}
+                                    "placeholder": "Могут отсутствовать"}
                                 )
     our_inbox_number = wtforms.StringField("Номер входящего письма",
                                            validators=[CustomInputRequired()])
