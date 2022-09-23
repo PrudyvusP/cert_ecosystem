@@ -2,7 +2,7 @@ import os
 from datetime import date
 from http import HTTPStatus
 
-from flask import abort, flash, redirect, send_file, url_for, current_app
+from flask import abort, current_app, flash, redirect, send_file, url_for
 from flask_admin import expose
 from flask_admin.form.rules import FieldSet
 from wtforms.validators import Optional

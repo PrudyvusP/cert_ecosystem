@@ -83,7 +83,9 @@ class MessageModelView(CreateRetrieveUpdateModelView):
                    'number_inbox_approved', 'date_registered',
                    'our_inbox_number']
 
-    column_searchable_list = ['information']
+    column_searchable_list = ['information',
+                              'our_outbox_number',
+                              'number_inbox_approved']
     column_sortable_list = ['date_inbox_approved',
                             'date_registered', 'date_approved']
     column_type_formatters = MESSAGE_DEFAULT_FORMATTERS

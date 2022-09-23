@@ -1,7 +1,7 @@
 from flask import Markup, url_for
 
-from cert_ecosystem.organizations.models import Organization
-from cert_ecosystem.organizations.utils import create_a_href_string
+from ..models import Organization
+from ..utils import create_a_href_string
 
 SYMB_CONST = "—"
 
