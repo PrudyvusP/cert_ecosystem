@@ -3,7 +3,9 @@
 {% block access_control %}
 {{ super() }}
 
-<form action="{{ url_for('workspace.egrul_search') }}" method="post" class="d-flex">
+<form action="{{ url_for('workspace.egrul_search') }}"
+      method="post"
+      class="d-flex">
   <input class="form-control mr-sm-2"
          type="search"
          name="search_keyword"
@@ -11,8 +13,9 @@
          minlength="3"
          size="30"
          required aria-label="Search">
+  <input type="hidden" name="prev_url" value="{{ request.url }}">
   <button class="btn btn-outline-light my-2 my-sm-0"
-          type="submit">Поиск
+          type="submit">Егрюл!
   </button>
 </form>
 {% endblock %}

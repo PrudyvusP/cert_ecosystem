@@ -2,12 +2,11 @@ import os
 from datetime import date
 from http import HTTPStatus
 
-from flask import abort, flash, redirect, send_file, url_for
+from flask import abort, flash, redirect, send_file, url_for, current_app
 from flask_admin import expose
 from flask_admin.form.rules import FieldSet
 from wtforms.validators import Optional
 
-from cert_ecosystem.config import Config
 from .master import CreateRetrieveUpdateModelView
 from ..exceptions import (OrgFileNotSavedError, DirNotCreatedError,
                           OrgPDFNotCreatedError)
@@ -33,11 +32,6 @@ NOT_PDF_MIMETYPE_MSG = "Not PDF!"
 ORGADM_DOC_NAME_CONST = 80
 PDF_MIMETYPE_CONST = "application/pdf"
 SUCCESS_DATA_UPLOAD_MSG = "Данные успешно добавлены"
-
-dir_with_org_files = os.path.join(Config.BASE_DIR,
-                                  "organizations",
-                                  Config.STATIC_FOLDER,
-                                  "organizations")
 
 
 class OrganizationModelView(CreateRetrieveUpdateModelView):
@@ -194,7 +188,7 @@ class OrganizationModelView(CreateRetrieveUpdateModelView):
                 )
                 db.session.add(new_org_doc)
             uploaded_file = form.doc_file.data
-            dir_name = os.path.join(dir_with_org_files,
+            dir_name = os.path.join(current_app.config['DIR_WITH_ORG_FILES'],
                                     org.first_two_uuid_symb,
                                     org.uuid)
             try:
@@ -229,7 +223,7 @@ class OrganizationModelView(CreateRetrieveUpdateModelView):
         """Возвращает файл документа организации."""
         org = db.session.query(Organization).get_or_404(org_id)
         doc = OrgAdmDoc.query.get_or_404(doc_id)
-        file_path = os.path.join(dir_with_org_files,
+        file_path = os.path.join(current_app.config['DIR_WITH_ORG_FILES'],
                                  org.first_two_uuid_symb,
                                  org.uuid,
                                  create_dot_pdf(doc.name_prefix))

@@ -3,13 +3,15 @@ from flask_admin.contrib.sqla.ajax import QueryAjaxModelLoader
 from flask_admin.form.rules import FieldSet
 from wtforms.validators import Length, InputRequired
 
-import cert_ecosystem.organizations.views.forms_placeholders as dictionary
-from cert_ecosystem.organizations.extentions import db
-from cert_ecosystem.organizations.forms import validate_future_date
-from cert_ecosystem.organizations.models import Message, Organization
-from .markup_formatters import (org_list_formatter, parent_single_formatter,
+from .markup_formatters import (org_list_formatter,
+                                parent_single_formatter,
                                 children_list_formatter)
-from .master import CreateRetrieveUpdateModelView, MESSAGE_DEFAULT_FORMATTERS
+from .master import (CreateRetrieveUpdateModelView,
+                     MESSAGE_DEFAULT_FORMATTERS)
+from ..extentions import db
+from ..forms import validate_future_date
+from ..models import Message, Organization
+from ..views import forms_placeholders as dictionary
 
 CHOOSE_MAIN_MESSAGE_TEXT = "Выберете письмо-основание"
 CHOOSE_MULT_ORG_TEXT = "Выберете организацию (-и)"

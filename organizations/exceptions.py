@@ -24,3 +24,7 @@ class AddressesNotAddedError(Exception):
 
 class ModelAttributeError(Exception):
     pass
+
+
+class EgrulApiWrongFormatError(Exception):
+    pass
