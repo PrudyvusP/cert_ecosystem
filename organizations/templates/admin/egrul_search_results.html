@@ -9,6 +9,7 @@
       <th class="align-middle">Полное название организации</th>
       <th class="align-middle">Сокращенное название организации</th>
       <th class="align-middle">ИНН</th>
+      <th class="align-middle">В рабочем пространстве?</th>
     </tr>
     </thead>
     {% for found_organization in found_organizations %}
@@ -21,6 +22,15 @@
       </td>
       <td class="align-middle">{{ found_organization['short_name'] }}</td>
       <td class="align-middle">{{ found_organization['inn'] }}</td>
+      <td class="align-middle">
+        {% if not found_organizations['is_workspace'] %}
+          <form action="/" method="post">
+            <button class="btn btn-outline-dark my-2 my-sm-0"
+                    type="submit">Добавить!
+            </button>
+          </form>
+         {% endif %}
+      </td>
       </tr>
     {% endfor %}
   </table>

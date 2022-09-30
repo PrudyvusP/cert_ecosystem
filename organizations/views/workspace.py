@@ -6,6 +6,8 @@ from flask_admin import BaseView, expose
 from requests.exceptions import InvalidJSONError
 
 from ..exceptions import EgrulApiWrongFormatError
+from ..extentions import db
+from ..models import Organization
 
 
 def check_response(response: dict) -> list:
@@ -71,6 +73,24 @@ class WorkspaceView(BaseView):
             found_organizations = check_response(response)
             count = response['count']
 
+            # TODO Обращаться для каждого объекта в базу - плохо!
+
+            for found_organization in found_organizations:
+                exists = (
+                    db.session.query(Organization)
+                    .filter(Organization.full_name == found_organization['full_name'])
+                    .filter(Organization.short_name == found_organization['short_name'])
+                    .filter(Organization.inn == found_organization['inn'])
+                ).first()
+                if exists:
+                    found_organization['is_workspace'] = True
+                else:
+                    found_organization['is_workspace'] = False
         return self.render('admin/egrul_search_results.html',
                            count=count,
                            found_organizations=found_organizations)
+
+    @expose('/add/', methods=['GET'])
+    def add_to_workspace(self):
+        ...
+        # id = request.form['']
