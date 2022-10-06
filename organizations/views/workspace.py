@@ -1,20 +1,35 @@
 import json
 
 import requests
-from flask import current_app as app, flash, redirect, request
+from flask import current_app as app, flash, redirect, request, url_for
 from flask_admin import BaseView, expose
 from requests.exceptions import InvalidJSONError
 
 from ..exceptions import EgrulApiWrongFormatError
 from ..extentions import db
-from ..models import Organization
+from ..models import Organization, Region
+
+
+def get_api_url(url_to_go: str) -> str:
+    base_api_url = app.config['EGRUL_SERVICE_URL']
+    return base_api_url + url_to_go
+
+
+def convert_from_json_to_dict(json_data: requests.models.Response) -> dict:
+    """Конвертирует ответ из json в dict."""
+    try:
+        response = json_data.json()
+    except json.JSONDecodeError:
+        app.logger.error('Ошибка конвертации ответа от EGRUL API!')
+        raise InvalidJSONError('Ошибка конвертации ответа от EGRUL API!')
+    return response
 
 
 def check_response(response: dict) -> list:
     """Возвращает список организаций."""
     if not isinstance(response, dict):
         raise TypeError("Должен быть словарь!")
-    key_words = ["count", "next", "count", "results"]
+    key_words = ["count", "next", "previous", "results"]
     for key_word in key_words:
         if key_word not in response:
             app.logger.error(
@@ -36,11 +51,11 @@ class WorkspaceView(BaseView):
         return False
 
     @expose('/', methods=['POST'])
-    def egrul_search(self):
+    def egrul_search(self, url=None):
+        """Описание view-функции поиска сведений в ЕГРЮЛ."""
         prev_url = request.form['prev_url']
         search_keyword = request.form['search_keyword']
-        url = app.config['EGRUL_SERVICE_URL'] + 'api/organizations/'
-
+        url = get_api_url('api/organizations/')
         if search_keyword.isdigit():
             params = {"search": search_keyword}
         else:
@@ -48,7 +63,7 @@ class WorkspaceView(BaseView):
             url += 'fts-search/'
 
         try:
-            r = requests.get(url, params=params)
+            _request = requests.get(url, params=params)
         except requests.exceptions.RequestException:
             app.logger.error('EGRUL API не доступен')
             flash(
@@ -58,11 +73,7 @@ class WorkspaceView(BaseView):
             )
             return redirect(prev_url)
 
-        try:
-            response = r.json()
-        except json.JSONDecodeError:
-            app.logger.error('Ошибка конвертации ответа от EGRUL API!')
-            raise InvalidJSONError('Ошибка конвертации ответа от EGRUL API!')
+        response = convert_from_json_to_dict(_request)
 
         count = 0
         found_organizations = []
@@ -72,7 +83,9 @@ class WorkspaceView(BaseView):
         if response:
             found_organizations = check_response(response)
             count = response['count']
-
+            prev_page = response['previous']
+            next_page = response['next']
+            print(prev_page, next_page)
             # TODO Обращаться для каждого объекта в базу - плохо!
 
             for found_organization in found_organizations:
@@ -84,13 +97,35 @@ class WorkspaceView(BaseView):
                 ).first()
                 if exists:
                     found_organization['is_workspace'] = True
+                    found_organization['org_id'] = exists.org_id
                 else:
                     found_organization['is_workspace'] = False
+                    found_organization['org_id'] = None
         return self.render('admin/egrul_search_results.html',
                            count=count,
                            found_organizations=found_organizations)
 
-    @expose('/add/', methods=['GET'])
+    @expose('/add/', methods=['POST'])
     def add_to_workspace(self):
-        ...
-        # id = request.form['']
+        """Описание вью-функции добавления организации
+        из ЕГРЮЛ в рабочее пространство."""
+
+        api_url = get_api_url(request.form['org_url'].lstrip('/'))
+        _request = requests.get(api_url)
+        response = convert_from_json_to_dict(_request)
+        region = db.session.query(Region).get(int(response.pop('region_code')))
+        response["region"] = region
+        new_org = Organization(**response)
+        try:
+            db.session.add(new_org)
+            db.session.commit()
+        except Exception:
+            flash("Не удалось перенести организацию в рабочее пространство",
+                  category='error')
+            app.logger.error('Ошибка при записи в БД')
+
+        else:
+            flash("Организация успешно добавлена", category='success')
+        finally:
+            return redirect(
+                url_for('organizations.details_view', id=new_org.org_id))

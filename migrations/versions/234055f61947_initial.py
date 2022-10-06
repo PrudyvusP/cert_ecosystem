@@ -92,7 +92,7 @@ def upgrade():
                     sa.Column('full_name', sa.Text(), nullable=False),
                     sa.Column('short_name', sa.Text(), nullable=True),
                     sa.Column('inn', sa.String(length=10), nullable=True),
-                    sa.Column('ogrn', sa.String(length=13), nullable=True),
+                    sa.Column('ogrn', sa.String(length=13), nullable=True, unique=True),
                     sa.Column('factual_address', sa.Text(), nullable=True),
                     sa.Column('boss_position', sa.String(length=200), nullable=True),
                     sa.Column('boss_fio', sa.String(length=200), nullable=True),

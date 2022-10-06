@@ -158,8 +158,8 @@ class Organization(DateAddedCreatedMixin, db.Model):
                  contacts=None, date_agreement=None, agreement_unit=None,
                  is_gov=False, is_military=False,
                  is_active=True, region=None):
-        self.full_name = full_name
-        self.short_name = short_name
+        self.full_name = full_name.upper()
+        self.short_name = short_name.upper()
         self.ogrn = ogrn
         self.inn = inn
         self.factual_address = factual_address

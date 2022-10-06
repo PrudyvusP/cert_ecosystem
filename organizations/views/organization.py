@@ -56,14 +56,17 @@ class OrganizationModelView(CreateRetrieveUpdateModelView):
     # LIST options
     list_template = 'admin/org_list.html'
 
-    column_default_sort = [('full_name', False), ('inn', False)]
+    column_default_sort = [('date_added', True),
+                           ('date_updated', True),
+                           ('full_name', True),
+                           ('inn', False)]
     column_descriptions = dictionary.organization_fields_descriptions
     column_editable_list = ['contacts']
     column_exclude_list = ['short_name', 'uuid', 'id', 'date_added',
                            'date_updated', 'region_id', 'ogrn', 'db_name',
                            'agreement_unit', 'boss_fio', 'is_gov',
                            'boss_position', 'factual_address',
-                           'is_military']
+                           'is_military', 'is_active']
     column_filters = ('db_name',
                       OrgHasHadAnyContactsWithUsFilter(
                           Organization,
@@ -85,7 +88,7 @@ class OrganizationModelView(CreateRetrieveUpdateModelView):
     column_labels = dictionary.organization_fields_labels
     column_searchable_list = ['db_name', 'inn']
     column_sortable_list = ('full_name', ('region', 'region.name'),
-                            'date_agreement', 'is_gov', 'is_military', 'inn')
+                            'date_agreement')
 
     # RETRIEVE OPTIONS
     details_template = 'admin/org_details.html'

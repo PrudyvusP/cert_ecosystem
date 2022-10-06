@@ -16,22 +16,31 @@
       <tr>
       <td class="align-middle">{{ loop.index }}.</td>
       <td class="align-middle">
-        <a href="http://localhost{{ found_organization['url'] }}">
           {{ found_organization['full_name'] }}
-        </a>
       </td>
       <td class="align-middle">{{ found_organization['short_name'] }}</td>
       <td class="align-middle">{{ found_organization['inn'] }}</td>
       <td class="align-middle">
-        {% if not found_organizations['is_workspace'] %}
-          <form action="/" method="post">
+        {% if not found_organization['is_workspace'] %}
+          <form action="{{ url_for('workspace.add_to_workspace') }}" method="post">
+            <input type="hidden" name="org_url" value="{{ found_organization['url'] }}">
             <button class="btn btn-outline-dark my-2 my-sm-0"
                     type="submit">Добавить!
             </button>
           </form>
-         {% endif %}
+        {% else %}
+        <a href="{{ url_for('organizations.details_view', id=found_organization['org_id']) }}">
+          Уже добавлена!
+        </a>
+        {% endif %}
       </td>
       </tr>
     {% endfor %}
   </table>
+
+  <nav>
+    <ul class="pagination justify-content-end">
+      <li class="page-item"> <a href="{{ url_for('workspace.egrul_search', page=) }}"</li>
+    </ul>
+  </nav>
 {% endblock %}
