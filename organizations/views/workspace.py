@@ -11,6 +11,7 @@ from ..models import Organization, Region
 
 
 def get_api_url(url_to_go: str) -> str:
+    """Создает относительный путь адреса EGRUL-сервиса."""
     base_api_url = app.config['EGRUL_SERVICE_URL']
     return base_api_url + url_to_go
 
@@ -51,11 +52,15 @@ class WorkspaceView(BaseView):
         return False
 
     @expose('/', methods=['POST'])
-    def egrul_search(self, url=None):
+    def egrul_search(self):
         """Описание view-функции поиска сведений в ЕГРЮЛ."""
-        prev_url = request.form['prev_url']
+        prev_url = request.form.get('prev_url')
         search_keyword = request.form['search_keyword']
-        url = get_api_url('api/organizations/')
+        url = (request.form.get('next_page')
+               or request.form.get('prev_page')
+               or get_api_url('api/organizations/')
+               )
+
         if search_keyword.isdigit():
             params = {"search": search_keyword}
         else:
@@ -78,14 +83,12 @@ class WorkspaceView(BaseView):
         count = 0
         found_organizations = []
 
-        # TODO нарисовать пагинацию в шаблоне
-
         if response:
             found_organizations = check_response(response)
             count = response['count']
             prev_page = response['previous']
             next_page = response['next']
-            print(prev_page, next_page)
+
             # TODO Обращаться для каждого объекта в базу - плохо!
 
             for found_organization in found_organizations:
@@ -101,9 +104,16 @@ class WorkspaceView(BaseView):
                 else:
                     found_organization['is_workspace'] = False
                     found_organization['org_id'] = None
+            return self.render('admin/egrul_search_results.html',
+                               count=count,
+                               found_organizations=found_organizations,
+                               search_keyword=search_keyword,
+                               prev_page=prev_page,
+                               next_page=next_page)
         return self.render('admin/egrul_search_results.html',
                            count=count,
-                           found_organizations=found_organizations)
+                           found_organizations=found_organizations,
+                           search_keyword=search_keyword)
 
     @expose('/add/', methods=['POST'])
     def add_to_workspace(self):

@@ -2,6 +2,7 @@
 
 {% block body %}
 <p class="mt-6 h4"> Найдено организаций: {{ count }}</p>
+{% if count %}
   <table class="table table-hover table-sm text-center">
     <thead>
     <tr>
@@ -40,7 +41,27 @@
 
   <nav>
     <ul class="pagination justify-content-end">
-      <li class="page-item"> <a href="{{ url_for('workspace.egrul_search', page=) }}"</li>
+      <li class="page-item">
+        <form action="{{ url_for('workspace.egrul_search') }}" method="post">
+          {% if prev_page %}
+            <button type="submit"
+                    name="prev_page"
+                    value="{{ prev_page }}"
+                    class="btn btn-outline-dark my-2 my-sm-0">
+              <=
+            </button>
+          {% endif %}
+          {% if next_page %}
+            <button type="submit"
+                    name="next_page"
+                    value="{{ next_page }}"
+                    class="btn btn-outline-dark my-2 my-sm-0">
+              =>
+            </button>
+          {% endif %}
+          <input type="hidden" name="search_keyword" value="{{ search_keyword }}">
+        </form>
     </ul>
   </nav>
+{% endif %}
 {% endblock %}
