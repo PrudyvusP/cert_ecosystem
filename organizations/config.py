@@ -29,7 +29,7 @@ class Config:
     MAX_CONTENT_LENGTH = 100 * 1024 * 1024
 
     EGRUL_SERVICE_URL = environ.get('EGRUL_SERVICE_URL',
-                                    'http://localhost:8000')
+                                    'http://localhost:28961')
 
 
 class ProdConfig(Config):

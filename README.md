@@ -40,9 +40,12 @@ POSTGRES_PASSWORD=<db_password>
 ```bash
 https://github.com/PrudyvusP/cert_ecosystem.git && cd "$(basename "$_" .git)"
 ```
-Для быстрого развертывания предусмотрен скрипт setup.sh, который создаст виртуальное
+
+Для быстрого развертывания предусмотрен скрипт **setup.sh**, который создаст виртуальное
 окружение, загрузит необходимые зависимости, добавит необходимые переменные окружения (режим **testing**), 
-осуществит миграции БД и зальет подготовленные географические сведения:
+осуществит миграции БД (дополнительно добавив сведения о регионах и округах РФ), а также
+зальет тестовые данные для демонстрации логики работы сервиса:
+
 ```bash
 bash setup.sh
 ```
@@ -50,6 +53,41 @@ bash setup.sh
 Backend-сервером выступает gunicorn:
 ```bash
 gunicorn -b localhost:8000 -w 3 app:app --access-logfile -
+```
+
+#### Сведения из ЕГРЮЛ в форме поиска
+
+Если дополнительно развернуть в докере [данный сервис](https://github.com/PrudyvusP/egrul_fts_api)
+на http://localhost:28961, то возможно добавлять организации из ЕГРЮЛ в рабочее пространство через форму поиска.  
+P.S. порт **28961** занят Call of Duty 4, поэтому на боевом сервере можно смело его использовать.
+
+
+### Deploy
+
+Один из вариантов развертывания сервиса - это создание соответствующей службы.
+Представим, что сервис должен вращаться от имени пользователя *debian* в домашней 
+директории */home/debian/* и быть доступным по адресу *http://localhost:8000*.
+В таком случае необходимо создать файл `/etc/systemd/system/cert_ecosystem.service`
+как минимум следующего содержания:
+
+```bash
+[Unit]
+Description=Cert Ecosystem Web Service
+After=network.target
+ 
+[Service]
+User=debian
+WorkingDirectory=/home/debian/cert_ecosystem/
+ExecStart=/home/debian/cert_ecosystem/venv/bin/gunicorn -b localhost:8000 -w 3 app:app --access-logfile -
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+```
+После создания перезапустим службы и запустим *cert_ecosystem*:
+```bash
+sudo systemctl daemon-reload
+sudo systemctl start cert_ecosystem
 ```
 
 ### Management-команды
