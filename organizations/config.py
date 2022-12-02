@@ -21,7 +21,6 @@ class Config:
     TEMPLATES_FOLDER = 'templates'
     DIR_WITH_ORG_FILES = path.join(
         BASE_DIR,
-        '',
         STATIC_FOLDER,
         'organizations'
     )
