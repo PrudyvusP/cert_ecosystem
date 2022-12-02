@@ -130,7 +130,6 @@ dmypy.json
 
 # App exclude
 /data_storage/EGRUL_DATA/
-/.env
 *.db
 /conf_data.py
 /organizations/static/organizations/

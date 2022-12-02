@@ -1,17 +1,17 @@
 from flask import Flask
 from flask_admin import Admin
 
-from cert_ecosystem.config import DevConfig, ProdConfig, TestConfig
-from cert_ecosystem.organizations.commands import index
-from cert_ecosystem.organizations.extentions import db, babel, migrate
-from cert_ecosystem.organizations.models import (Organization, Resource,
-                                                 OrgAdmDoc, Message)
-from cert_ecosystem.organizations.views.home_view import HomeView
-from cert_ecosystem.organizations.views.message import MessageModelView
-from cert_ecosystem.organizations.views.orgadmdoc import OrgAdmDocModelView
-from cert_ecosystem.organizations.views.organization import OrganizationModelView
-from cert_ecosystem.organizations.views.resource import ResourceModelView
-from cert_ecosystem.organizations.views.workspace import WorkspaceView
+from .commands import index
+from .config import DevConfig, ProdConfig, TestConfig
+from .extentions import db, babel, migrate
+from .models import (Organization, Resource,
+                     OrgAdmDoc, Message)
+from .views.home_view import HomeView
+from .views.message import MessageModelView
+from .views.orgadmdoc import OrgAdmDocModelView
+from .views.organization import OrganizationModelView
+from .views.resource import ResourceModelView
+from .views.workspace import WorkspaceView
 
 
 def init_admin(app):

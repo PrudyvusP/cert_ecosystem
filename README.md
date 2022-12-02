@@ -19,9 +19,10 @@ CERT_ecosystem - это сервис учета взаимодействия с 
 ### Переменные окружения
 В корне проекта должен быть предусмотрен файл `.env`, в котором должны быть установлены
 обязательно следующие переменные окружения:
-`SECRET_KEY=<secret_key>`  
-`FLASK_ENV=<development/testing/production>`  
-`FLASK_APP=organizations`
+```bash
+SECRET_KEY=<secret_key>
+FLASK_ENV=<development/testing/production>
+```
 
 В режиме **production** в качестве БД используется PostgreSQL, которая хочет видеть 
 такие переменные окружения для подключения:
@@ -44,6 +45,11 @@ https://github.com/PrudyvusP/cert_ecosystem.git && cd "$(basename "$_" .git)"
 и осуществит миграции БД и зальет подготовленные географические сведения
 ```bash
 bash setup.sh
+```
+
+Backend-сервером выступает gunicorn
+```bash
+gunicorn -b localhost:8000 -w 3 app:app --access-logfile -
 ```
 
 ### Management-команды

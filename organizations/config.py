@@ -21,7 +21,7 @@ class Config:
     TEMPLATES_FOLDER = 'templates'
     DIR_WITH_ORG_FILES = path.join(
         BASE_DIR,
-        'organizations',
+        '',
         STATIC_FOLDER,
         'organizations'
     )
@@ -56,7 +56,7 @@ class DevConfig(Config):
 
     SQLALCHEMY_DATABASE_URI = ('sqlite:///'
                                + path.join(basedir,
-                                           'data.db')
+                                           '../data.db')
                                )
 
 
@@ -65,5 +65,5 @@ class TestConfig(Config):
 
     SQLALCHEMY_DATABASE_URI = ('sqlite:///'
                                + path.join(basedir,
-                                           'test_data.db')
+                                           '../test_data.db')
                                )
