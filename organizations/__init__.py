@@ -66,15 +66,15 @@ def init_admin(app):
     )
 
 
-def create_app(config='dev'):
+def create_app():
     """Создает инстанс приложения."""
 
-    conf_types = {'dev': DevConfig,
-                  'test': TestConfig,
-                  'prod': ProdConfig}
+    conf_types = {'development': DevConfig,
+                  'testing': TestConfig,
+                  'production': ProdConfig}
 
     app = Flask(__name__)
-    app.config.from_object(conf_types.get(config))
+    app.config.from_object(conf_types.get(app.config['ENV']))
     db.init_app(app)
     migrate.init_app(app, db)
     init_admin(app)

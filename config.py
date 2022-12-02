@@ -1,4 +1,3 @@
-import os.path
 from os import environ, path
 
 from dotenv import load_dotenv
@@ -10,7 +9,7 @@ load_dotenv(path.join(basedir, '.env'))
 class Config:
     """Базовые настройки приложения."""
 
-    DEBUG = True
+    DEBUG = False
     SECRET_KEY = environ.get('SECRET_KEY')
 
     BABEL_DEFAULT_LOCALE = 'ru'
@@ -20,25 +19,21 @@ class Config:
     BASE_DIR = basedir
     STATIC_FOLDER = 'static'
     TEMPLATES_FOLDER = 'templates'
-    DIR_WITH_ORG_FILES = os.path.join(
+    DIR_WITH_ORG_FILES = path.join(
         BASE_DIR,
         'organizations',
         STATIC_FOLDER,
         'organizations'
     )
-
-    SQLALCHEMY_ECHO = False
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
     MAX_CONTENT_LENGTH = 100 * 1024 * 1024
 
-    EGRUL_SERVICE_URL = 'http://localhost/'
+    EGRUL_SERVICE_URL = environ.get('EGRUL_SERVICE_URL')
 
 
 class ProdConfig(Config):
     """Настройки для продакшена."""
-    FLASK_ENV = 'production'
-    DEBUG = False
 
     DB_HOST = environ.get('DB_HOST')
     DB_NAME = environ.get('DB_NAME')
@@ -46,7 +41,6 @@ class ProdConfig(Config):
     POSTGRES_USER = environ.get('POSTGRES_USER')
     POSTGRES_PASSWORD = environ.get('POSTGRES_PASSWORD')
 
-    SQLALCHEMY_ECHO = False
     SQLALCHEMY_DATABASE_URI = ('postgresql+psycopg2://'
                                f'{POSTGRES_USER}:{POSTGRES_PASSWORD}'
                                f'@{DB_HOST}:{DB_PORT}/{DB_NAME}')
@@ -54,19 +48,21 @@ class ProdConfig(Config):
 
 class DevConfig(Config):
     """Настройки для разработки."""
-    FLASK_ENV = 'development'
+
+    DEBUG = True
+    SQLALCHEMY_ECHO = True
+    SQLALCHEMY_TRACK_MODIFICATIONS = True
+
     SQLALCHEMY_DATABASE_URI = ('sqlite:///'
-                               + os.path.join(basedir,
-                                              'data.db')
+                               + path.join(basedir,
+                                           'data.db')
                                )
 
 
 class TestConfig(Config):
     """Настройки для тестирования."""
-    FLASK_ENV = 'testing'
-    TESTING = True
-    SQLALCHEMY_ECHO = True
+
     SQLALCHEMY_DATABASE_URI = ('sqlite:///'
-                               + os.path.join(basedir,
-                                              'test_data.db')
+                               + path.join(basedir,
+                                           'test_data.db')
                                )
