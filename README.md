@@ -14,7 +14,8 @@ CERT_ecosystem - это сервис учета взаимодействия с 
 Географические данные регионов и округов заполняются с помощью миграции данных, а данные адресов берутся из 
 [Эталонного справочника почтовых индексов объектов почтовой связи АО "Почта России"](https://www.pochta.ru/support/database/ops)
 
-Сервис написан на Flask преимущественно с использованием flask-admin. В качестве БД используется PostgreSQL.
+Сервис написан на Flask с использованием Flask-admin в целях получения большей функциональности при минимальной вёрстке.
+В качестве БД используется PostgreSQL.
 
 ### Переменные окружения
 В директории  `organizations` проекта должен быть предусмотрен файл `.env`, в котором должны быть определены
@@ -38,7 +39,7 @@ POSTGRES_PASSWORD=<db_password>
 
 Клонировать проект:
 ```bash
-https://github.com/PrudyvusP/cert_ecosystem.git && cd "$(basename "$_" .git)"
+git clone https://github.com/PrudyvusP/cert_ecosystem.git && cd "$(basename "$_" .git)"
 ```
 
 Для быстрого развертывания предусмотрен скрипт **setup.sh**, который создаст виртуальное
@@ -52,7 +53,7 @@ bash setup.sh
 
 Backend-сервером выступает gunicorn:
 ```bash
-gunicorn -b localhost:8000 -w 3 app:app --access-logfile -
+venv/bin/gunicorn -b localhost:8000 -w 3 app:app --access-logfile -
 ```
 
 #### Сведения из ЕГРЮЛ в форме поиска
@@ -90,6 +91,20 @@ sudo systemctl daemon-reload
 sudo systemctl start cert_ecosystem
 ```
 
+
+### PostgreSQL пример набора команд
+
+Создать базу данных, создать пользователя, дать ему права, использовать созданную базу,
+убедиться в том, что в таблице **regions** есть записи о регинонах:
+```bash
+sudo -iu postgres psql
+CREATE DATABASE cert_db;
+CREATE USER cert_user WITH PASSWORD '1q2w3e4r';
+GRANT ALL PRIVILEGES ON DATABASE cert_db TO cert_user;
+\c cert_db;
+SELECT COUNT(*) FROM regions;
+```
+
 ### Management-команды
 
 Команда index проверяет наличие обновления или обновляет БД сведениями
@@ -100,3 +115,8 @@ flask index -f <path_to_file> check
 flask index -f <path_to_file> update
 ```
 
+### Вместо заключения
+
+В сервисе отсутствует модуль аутентификации, так как сервис эксплуатируется
+в настоящее время в режиме "все пользователи равны", а для всего остального есть
+~~MasterCard~~ pg_dump :)
