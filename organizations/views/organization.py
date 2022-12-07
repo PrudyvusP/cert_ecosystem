@@ -12,12 +12,12 @@ from ..exceptions import (OrgFileNotSavedError, DirNotCreatedError,
                           OrgPDFNotCreatedError)
 from ..extentions import db
 from ..filters import (OrgRegionFilter,
-                       OrgHasAgreementFilter, OrgIsSubjectKIIFilter,
-                       OrgHasHadAnyContactsWithUsFilter, OrgDocumentsFilter)
+                       OrgHasAgreementFilter, OrgDocumentsFilter,
+                       OrgOkrugFilter)
 from ..forms import (AddSubjectDocumentForm, validate_future_date,
                      validate_inn, validate_ogrn)
 from ..models import (Organization, Region, OrgAdmDoc,
-                      OrgAdmDocOrganization)
+                      OrgAdmDocOrganization, Okrug)
 from ..utils import (create_pdf, create_dot_pdf,
                      get_alpha_num_string)
 from ..utils import get_instance_choices
@@ -68,18 +68,11 @@ class OrganizationModelView(CreateRetrieveUpdateModelView):
                            'boss_position', 'factual_address',
                            'is_military', 'is_active']
     column_filters = ('db_name',
-                      OrgHasHadAnyContactsWithUsFilter(
-                          Organization,
-                          'Наличие взаимодействия'
-                      ),
                       OrgHasAgreementFilter(
                           Organization.date_agreement,
-                          'Соглашение о сотрудничестве'
+                          'Наличие соглашения о сот-ве'
                       ),
-                      OrgIsSubjectKIIFilter(
-                          Organization,
-                          'Субъект КИИ'
-                      ))
+                      )
     column_formatters_export = dict(
         is_gov=lambda v, c, m, p: '+' if m.is_gov is True else '-',
         is_military=lambda v, c, m, p: '+' if m.is_military is True else '-',
@@ -130,9 +123,16 @@ class OrganizationModelView(CreateRetrieveUpdateModelView):
             [
                 OrgRegionFilter(
                     None,
-                    name='Регион(-ы)',
+                    name='Регион(-ы) организаций',
                     options=get_instance_choices(Region,
                                                  'region_id',
+                                                 'name')
+                ),
+                OrgOkrugFilter(
+                    None,
+                    name='Округ(-и) организаций',
+                    options=get_instance_choices(Okrug,
+                                                 'okrug_id',
                                                  'name')
                 ),
                 OrgDocumentsFilter(

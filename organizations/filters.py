@@ -36,7 +36,19 @@ class OrgRegionFilter(filters.FilterInList):
                 )
 
 
+class OrgOkrugFilter(filters.FilterInList):
+    """Фильтр на список организаций,
+    расположенных в округах, id которых переданы."""
+    def apply(self, query, value, alias=None):
+        return (query
+                .join(Region, Organization.region_id == Region.region_id)
+                .join(Okrug, Region.okrug_id == Okrug.okrug_id)
+                .filter(Region.okrug_id.in_(value))
+                )
+
 class OrgDocumentsFilter(filters.FilterInList):
+    """Фильтр на список организаций, у которых
+    есть организационно-распорядительные документы."""
     def apply(self, query, value, alias=None):
         return (query
                 .join(OrgAdmDocOrganization,
