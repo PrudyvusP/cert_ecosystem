@@ -103,7 +103,7 @@ class MessageModelView(CreateRetrieveUpdateModelView):
         'organizations': QueryAjaxModelLoader('organizations',
                                               db.session,
                                               Organization,
-                                              fields=['db_name'],
+                                              fields=['db_name', 'short_name'],
                                               filters=['is_active=True'],
                                               order_by='full_name',
                                               placeholder=CHOOSE_MULT_ORG_TEXT,

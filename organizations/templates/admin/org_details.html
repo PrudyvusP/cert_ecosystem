@@ -92,17 +92,28 @@
     <td class="align-middle">—</td>
     {% else %}
     <td class="align-middle">Вх</td>
-    <td class="align-middle">{{ message.date_inbox_approved.strftime("%d-%m-%Y") }}</td>
+    <td class="align-middle">
+      {% if message.date_inbox_approved %}
+        {{ message.date_inbox_approved.strftime("%d-%m-%Y") }}
+      {% else %}
+        —
+      {% endif %}
+    </td>
     <td class="align-middle">{{ message.number_inbox_approved }}</td>
     <td class="align-middle">{{ message.our_inbox_number }}</td>
-    <td class="align-middle">{{ message.date_registered.strftime("%d-%m-%Y") }}</td>
-    {% endif %}
+    <td class="align-middle">
+      {% if message.date_registered %}
+        {{ message.date_registered.strftime("%d-%m-%Y") }}</td>
+      {% else %}
+        —
+      {% endif %}
     <td class="align-middle">
       <a href="{{ url_for('messages.details_view',
                             id=message.message_id) }}">
         {{ message.information }}
       </a>
     </td>
+    {% endif %}
   </tr>
   {% endfor %}
 </table>
