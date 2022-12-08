@@ -48,21 +48,46 @@ class BaseFormWithSubmit(FlaskForm):
 class AddSubjectDocumentForm(BaseFormWithSubmit):
     """Форма для учета документов организаций."""
 
+    organization_name = wtforms.StringField("Наименование организации:")
+
     org_documents = wtforms.SelectField("Выберете тип документа:",
                                         choices=[],
                                         coerce=int,
                                         validators=[CustomInputRequired()])
-    date_approved = wtforms.DateField("Дата подписи",
+    date_approved = wtforms.DateField("Дата подписи документа",
                                       validators=[CustomInputRequired(),
                                                   validate_future_date],
                                       format="%Y-%m-%d")
-    props = wtforms.StringField("Реквизиты документа:",
+    props = wtforms.StringField("Подписной номер документа:",
                                 validators=[Optional()],
                                 render_kw={
-                                    "placeholder": "Могут отсутствовать"}
+                                    "placeholder": "Может отсутствовать"}
                                 )
-    our_inbox_number = wtforms.StringField("Номер входящего письма",
-                                           validators=[CustomInputRequired()])
+
+    comment = wtforms.TextAreaField("Комментарий к документу:",
+                                    validators=[Optional()],
+                                    render_kw={
+                                        "placeholder": "Дополнительная информация",
+                                        "rows": 4}
+                                    )
+
     doc_file = wtforms.FileField('Образ документа',
                                  validators=[Optional()])
-    organization_name = wtforms.StringField("Наименование организации:")
+
+    our_inbox_number = wtforms.StringField("Наш номер входящего письма:",
+                                           validators=[CustomInputRequired()],
+                                           render_kw={
+                                               "placeholder": "1111"})
+
+    date_registered = wtforms.DateField("Дата регистрации входящего письма:",
+                                        validators=[CustomInputRequired(),
+                                                    validate_future_date]
+                                        )
+    number_inbox_approved = wtforms.StringField("Подписной номер входящего письма:",
+                                                validators=[CustomInputRequired()],
+                                                render_kw={
+                                                    "placeholder": "ЛПУ-16"})
+    date_inbox_approved = wtforms.DateField("Дата подписи входящего письма:",
+                                            validators=[CustomInputRequired(),
+                                                        validate_future_date]
+                                            )

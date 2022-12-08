@@ -469,6 +469,7 @@ class OrgAdmDocOrganization(db.Model):
     props = db.Column(db.Text)
     our_inbox_number = db.Column(db.String(7))
     inventory_number = db.Column(db.Integer)
+    comment = db.Column(db.Text)
     organization = db.relationship("Organization",
                                    back_populates="org_adm_doc")
 

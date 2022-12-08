@@ -47,6 +47,7 @@
     <th class="align-middle">Название документа</th>
     <th class="align-middle">Дата утверждения</th>
     <th class="align-middle">Реквизиты</th>
+    <th class="align-middle">Комментарий</th>
     <th class="align-middle">Файл</th>
   </tr>
   {% for doc in model.org_adm_doc %}
@@ -57,6 +58,7 @@
       {% endif %}
     </td>
     {{ fill_data_or_none(doc.props) }}
+    {{ fill_data_or_none(doc.comment) }}
     <td class="align-middle">
       <a href="{{ url_for('organizations.return_org_document',
                             doc_id=doc.orgadm_id,

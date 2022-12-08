@@ -17,7 +17,8 @@ from ..filters import (OrgRegionFilter,
 from ..forms import (AddSubjectDocumentForm, validate_future_date,
                      validate_inn, validate_ogrn)
 from ..models import (Organization, Region, OrgAdmDoc,
-                      OrgAdmDocOrganization, Okrug)
+                      OrgAdmDocOrganization, Okrug,
+                      Message)
 from ..utils import (create_pdf, create_dot_pdf,
                      get_alpha_num_string)
 from ..utils import get_instance_choices
@@ -164,9 +165,28 @@ class OrganizationModelView(CreateRetrieveUpdateModelView):
 
         if form.validate_on_submit():
             document = OrgAdmDoc.query.get_or_404(form.org_documents.data)
+
+            # document
             date_approved = form.date_approved.data
-            our_inbox_number = form.our_inbox_number.data
             props = form.props.data or None
+            comment = form.comment.data or None
+
+            # message
+            our_inbox_number = form.our_inbox_number.data
+            date_registered = form.date_registered.data
+            number_inbox_approved = form.number_inbox_approved.data
+            date_inbox_approved = form.date_inbox_approved.data
+
+            information = f'о направлении документа "{document.name}"'
+
+            message = Message(our_inbox_number=our_inbox_number,
+                              date_registered=date_registered,
+                              number_inbox_approved=number_inbox_approved,
+                              date_inbox_approved=date_inbox_approved,
+                              information=information)
+
+            org.messages.append(message)
+            db.session.add(org)
 
             org_adm_doc_exists = (
                 (OrgAdmDocOrganization
@@ -178,18 +198,21 @@ class OrganizationModelView(CreateRetrieveUpdateModelView):
             if org_adm_doc_exists:
                 old_org_doc = org_adm_doc_exists
                 old_org_doc.date_approved = date_approved
-                old_org_doc.our_inbox_number = our_inbox_number
                 old_org_doc.props = props
+                old_org_doc.comment = comment
+
                 db.session.add(old_org_doc)
             else:
                 new_org_doc = OrgAdmDocOrganization(
                     organization=org,
                     org_doc=document,
                     date_approved=date_approved,
-                    our_inbox_number=our_inbox_number,
-                    props=props
+                    props=props,
+                    comment=comment
                 )
                 db.session.add(new_org_doc)
+
+
             uploaded_file = form.doc_file.data
             dir_name = os.path.join(current_app.config['DIR_WITH_ORG_FILES'],
                                     org.first_two_uuid_symb,
