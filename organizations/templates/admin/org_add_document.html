@@ -48,7 +48,7 @@
     </div>
     <div class="col-4">
       {{ form.doc_file.label }}
-      {{ form.doc_file(class="btn btn-sm btn-outline-dark", id="file") }}
+      {{ form.doc_file(class="btn btn-sm btn-outline-dark", id="file", required=true) }}
       {% for error in form.doc_file.errors %}
       <span style="color:red;">{{ error }}</span>
       {% endfor %}
@@ -102,7 +102,7 @@
   </div>
   <div class="row mt-4">
     <div class="col-8">
-      {{ form.submit(class="btn btn-dark btn-block") }}
+      {{ form.submit(class="btn btn-dark btn-block") }}f
     </div>
   </div>
 </form>
@@ -113,6 +113,7 @@
     var chkYes = document.getElementById("chkYes");
     var file = document.getElementById("file");
     file.disabled = chkNo.checked ? "disabled" : true;
+    file.required = chkNo.checked ? "disabled": true;
     file.disabled = chkYes.checked ? "disabled" : false;
     }
 </script>

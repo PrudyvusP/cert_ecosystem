@@ -59,6 +59,7 @@ class OrganizationModelView(CreateRetrieveUpdateModelView):
 
     column_default_sort = [('date_added', True),
                            ('date_updated', True),
+                           ('org_id', True),
                            ('full_name', True),
                            ('inn', False)]
     column_descriptions = dictionary.organization_fields_descriptions
