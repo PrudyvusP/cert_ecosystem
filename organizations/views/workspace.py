@@ -125,6 +125,10 @@ class WorkspaceView(BaseView):
         response = convert_from_json_to_dict(_request)
         region = db.session.query(Region).get(int(response.pop('region_code')))
         response["region"] = region
+
+        if not response.get("short_name"):
+            response["short_name"] = response["full_name"]
+
         new_org = Organization(**response)
         try:
             db.session.add(new_org)
