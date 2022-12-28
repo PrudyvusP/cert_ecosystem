@@ -142,3 +142,10 @@ class MessageModelView(CreateRetrieveUpdateModelView):
                  'Содержание письма'),
     )
     form_widget_args = dictionary.message_fields_placeholders
+    date_widget_format = {
+        'type': 'date',
+        'autocomplete': 'off',
+        'data-role': '',
+    }
+    for date in ['date_registered', 'date_inbox_approved', 'date_approved']:
+        form_widget_args[date] = date_widget_format
