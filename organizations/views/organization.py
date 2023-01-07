@@ -15,10 +15,10 @@ from ..filters import (OrgRegionFilter,
                        OrgHasAgreementFilter, OrgDocumentsFilter,
                        OrgOkrugFilter)
 from ..forms import (AddSubjectDocumentForm, validate_future_date,
-                     validate_inn, validate_ogrn)
+                     validate_inn, validate_ogrn, validate_kpp)
 from ..models import (Organization, Region, OrgAdmDoc,
                       OrgAdmDocOrganization, Okrug,
-                      Message)
+                      Message, Resource)
 from ..utils import (create_pdf, create_dot_pdf,
                      get_alpha_num_string)
 from ..utils import get_instance_choices
@@ -32,6 +32,7 @@ FILENAME_CONST = 20
 NOT_PDF_MIMETYPE_MSG = "Not PDF!"
 ORGADM_DOC_NAME_CONST = 80
 PDF_MIMETYPE_CONST = "application/pdf"
+SEARCH_MODEL_TEXT = "Название, ИНН, КПП"
 SUCCESS_DATA_UPLOAD_MSG = "Данные успешно добавлены"
 
 
@@ -81,7 +82,12 @@ class OrganizationModelView(CreateRetrieveUpdateModelView):
         is_active=lambda v, c, m, p: '+' if m.is_active is True else '-')
 
     column_labels = dictionary.organization_fields_labels
-    column_searchable_list = ['db_name', 'inn']
+    column_searchable_list = ['db_name', 'short_name', 'inn', 'kpp']
+
+    def search_placeholder(self):
+        """Переопределяет текст, отображаемый в Поиске по модели организации."""
+        return SEARCH_MODEL_TEXT
+
     column_sortable_list = ('full_name', ('region', 'region.name'),
                             'date_agreement')
 
@@ -89,7 +95,7 @@ class OrganizationModelView(CreateRetrieveUpdateModelView):
     details_template = 'admin/org_details.html'
     details_columns_grouped = get_details_grouped
     details_grouped = True
-    column_details_list = ('full_name', 'short_name', 'inn', 'ogrn',
+    column_details_list = ('full_name', 'short_name', 'inn', 'kpp', 'ogrn',
                            'factual_address', 'region',
                            'boss_position', 'boss_fio', 'contacts',
                            'date_agreement', 'agreement_unit', 'is_gov',
@@ -99,12 +105,14 @@ class OrganizationModelView(CreateRetrieveUpdateModelView):
     # CREATE / UPDATE options
     form_args = {"date_agreement": {"validators": [validate_future_date]},
                  "inn": {"validators": [Optional(), validate_inn]},
-                 "ogrn": {"validators": [Optional(), validate_ogrn]}}
+                 "ogrn": {"validators": [Optional(), validate_ogrn]},
+                 "kpp": {"validators": [Optional(), validate_kpp]}
+                 }
     form_excluded_columns = ('resources', 'responsible_unit', 'db_name',
                              'messages', 'org_adm_doc', 'uuid',
-                             'date_added', 'date_updated')
+                             'date_added', 'date_updated', 'is_active')
     form_rules = (
-        FieldSet(('full_name', 'short_name', 'inn', 'ogrn'),
+        FieldSet(('full_name', 'short_name', 'inn', 'kpp', 'ogrn'),
                  'Основные реквизиты организации'),
         FieldSet(('factual_address', 'region'),
                  'Адресная информация'),
@@ -213,7 +221,6 @@ class OrganizationModelView(CreateRetrieveUpdateModelView):
                 )
                 db.session.add(new_org_doc)
 
-
             uploaded_file = form.doc_file.data
             dir_name = os.path.join(current_app.config['DIR_WITH_ORG_FILES'],
                                     org.first_two_uuid_symb,
@@ -260,3 +267,10 @@ class OrganizationModelView(CreateRetrieveUpdateModelView):
         attach_file_name = create_dot_pdf(attach_file_name)
         return send_file(file_path, as_attachment=True,
                          attachment_filename=attach_file_name)
+
+    @expose('<int:org_id>/resources/', methods=['GET', 'POST'])
+    def org_resources_view(self, org_id: int):
+        """Возвращает действующие информационные ресурсы организаций."""
+        org = Organization.query.get_or_404(org_id)
+        s_resources = [(res.resource_id, res.name) for res in org.resources]
+        return dict(s_resources)

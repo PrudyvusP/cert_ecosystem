@@ -3,7 +3,7 @@ from os import environ, path
 from dotenv import load_dotenv
 
 basedir = path.abspath(path.dirname(__file__))
-load_dotenv(path.join(basedir, '.env'))
+load_dotenv(path.join(basedir, '../.env'))
 
 
 class Config:
@@ -29,7 +29,7 @@ class Config:
     MAX_CONTENT_LENGTH = 100 * 1024 * 1024
 
     EGRUL_SERVICE_URL = environ.get('EGRUL_SERVICE_URL',
-                                    'http://localhost:28961')
+                                    'http://localhost:28961/')
 
 
 class ProdConfig(Config):

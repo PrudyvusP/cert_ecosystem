@@ -109,6 +109,7 @@ class Organization(DateAddedCreatedMixin, db.Model):
     full_name = db.Column(db.Text, nullable=False)
     short_name = db.Column(db.Text)
     inn = db.Column(db.String(10), index=True)
+    kpp = db.Column(db.String(9), index=True)
     ogrn = db.Column(db.String(13), index=True)
     factual_address = db.Column(db.Text)
     boss_position = db.Column(db.String(200))
@@ -157,11 +158,12 @@ class Organization(DateAddedCreatedMixin, db.Model):
                  factual_address=None, boss_position=None, boss_fio=None,
                  contacts=None, date_agreement=None, agreement_unit=None,
                  is_gov=False, is_military=False,
-                 is_active=True, region=None):
+                 is_active=True, region=None, kpp=None):
         self.full_name = full_name.upper()
         self.short_name = short_name.upper()
         self.ogrn = ogrn
         self.inn = inn
+        self.kpp = kpp
         self.factual_address = factual_address
         self.boss_position = boss_position
         self.boss_fio = boss_fio
@@ -192,8 +194,8 @@ class Organization(DateAddedCreatedMixin, db.Model):
 
     def __repr__(self):
         name = self.full_name[:88]
-        if self.inn:
-            return f"{name} (ИНН {self.inn})"
+        if self.inn or self.kpp:
+            return f"{name} (ИНН/КПП {self.inn}/{self.kpp})"
         return name
 
 

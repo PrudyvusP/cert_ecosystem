@@ -9,6 +9,7 @@ from wtforms.validators import (InputRequired, Optional,
 MESSAGE_DATE_TODAY_TEXT = "Дата подписи должна быть не позднее сегодня"
 ORG_INN_NOT_CORRECT_TEXT = "Введите корректный ИНН"
 ORG_OGRN_NOT_CORRECT_TEXT = "Введите корректный ОГРН"
+ORG_KPP_NOT_CORRECT_TEXT = "Введите корректный КПП"
 
 
 def validate_future_date(form, field):
@@ -19,9 +20,8 @@ def validate_future_date(form, field):
 
 
 def validate_inn(form, field):
-    """Проверяет строку на соответствие шаблону ИНН (10 или 12 цифр)."""
-    pattern = r"^[\d+]{10,12}$"
-    if not re.match(pattern, str(field.data)):
+    """Проверяет строку на соответствие шаблону ИНН (10 цифр)."""
+    if len(field.data) != 10:
         raise ValidationError(ORG_INN_NOT_CORRECT_TEXT)
 
 
@@ -29,6 +29,12 @@ def validate_ogrn(form, field):
     """Проверяет строку на соответствие шаблону ОГРН (13 цифр)."""
     if len(field.data) != 13:
         raise ValidationError(ORG_OGRN_NOT_CORRECT_TEXT)
+
+
+def validate_kpp(form, field):
+    """Проверяет строку на соответствие шаблону КПП (9 цифр)."""
+    if len(field.data) != 9:
+        raise ValidationError(ORG_KPP_NOT_CORRECT_TEXT)
 
 
 class CustomInputRequired(InputRequired):

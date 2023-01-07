@@ -20,6 +20,7 @@ ORG_CONTACTS_TEXT = ("Директор Департамента физическ
                      " sport@with.us")
 ORG_FULL_NAME_TEXT = "АКЦИОНЕРНОЕ ОБЩЕСТВО \"РОМАШКА\""
 ORG_INN_TEXT = "7749000000"
+ORG_KPP_TEXT = "123456789"
 ORG_OGRN_TEXT = "1234567891234"
 ORG_SHORT_NAME_TEXT = "АО \"РОМАШКА\""
 
@@ -47,6 +48,7 @@ def get_beautiful_org_formatter(instance: ModelView) -> dict:
                 ('full_name', instance.column_labels['full_name']),
                 ('short_name', instance.column_labels['short_name']),
                 ('inn', instance.column_labels['inn']),
+                ('kpp', instance.column_labels['kpp']),
                 ('ogrn', instance.column_labels['ogrn'])
             ],
         'Адресная информация':
@@ -124,6 +126,7 @@ organization_fields_descriptions = dict(
     full_name='Полное наименование организации',
     short_name='Сокращенное наименование организации',
     inn='Идентификационный номер налогоплательщика (организации)',
+    kpp='Код причины постановки на учет (организации)',
     ogrn='Основной государственный регистрационный номер (организации)',
     factual_address='Адрес местонахождения (организации)',
     boss_position='Должность руководителя (организации)',
@@ -142,7 +145,7 @@ organization_fields_descriptions = dict(
 organization_fields_labels = dict(
     full_name='Полное наименование',
     short_name='Сокращенное наименование',
-    inn='ИНН', ogrn='ОГРН',
+    inn='ИНН', ogrn='ОГРН', kpp='КПП',
     factual_address='Адрес местонахождения',
     boss_position='Должность руководителя',
     boss_fio='ФИО руководителя',
@@ -161,6 +164,7 @@ organization_fields_placeholders = dict(
     full_name={'placeholder': ORG_FULL_NAME_TEXT},
     short_name={'placeholder': ORG_SHORT_NAME_TEXT},
     inn={'placeholder': ORG_INN_TEXT},
+    kpp={'placeholder': ORG_KPP_TEXT},
     ogrn={'placeholder': ORG_OGRN_TEXT},
     factual_address={'placeholder': ORG_ADDRESS_TEXT},
     boss_position={'placeholder': ORG_BOSS_POS_TEXT},

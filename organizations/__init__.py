@@ -56,7 +56,8 @@ def init_admin(app):
             Resource,
             db.session,
             name='Информационные ресурсы',
-            endpoint='resources')
+            endpoint='resources',
+            category='Информационные ресурсы')
     )
 
     admin.add_view(
