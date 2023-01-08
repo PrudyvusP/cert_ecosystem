@@ -55,6 +55,9 @@ class MessageModelView(CreateRetrieveUpdateModelView):
     # MAIN options
     can_delete = True
 
+    create_template = 'admin/msg_create.html'
+    edit_template = 'admin/msg_edit.html'
+
     # LIST options
     column_default_sort = ('datetime_created', True)
     column_descriptions = dictionary.message_fields_descriptions
@@ -126,6 +129,16 @@ class MessageModelView(CreateRetrieveUpdateModelView):
                                        minimum_input_length=1
                                        )
     }
+    form_columns = ('date_registered',
+                    'date_inbox_approved',
+                    'date_approved',
+                    'number_inbox_approved',
+                    'information',
+                    'our_inbox_number',
+                    'our_outbox_number',
+                    'organizations',
+                    'parent')
+
     form_args = {
         'date_registered': {'validators': [validate_future_date]},
         'date_inbox_approved': {'validators': [validate_future_date]},
@@ -134,12 +147,19 @@ class MessageModelView(CreateRetrieveUpdateModelView):
         'organizations': {'validators': [
             InputRequired(MESSAGE_NO_ORG_CHOSEN_TEXT)]}
     }
-    form_excluded_columns = ('methodical_docs', 'datetime_created',
-                             'datetime_updated', 'children')
+
+    for key in form_columns:
+        if key in form_args:
+            form_args[key]['description'] = ''
+        else:
+            form_args[key] = {'description': ''}
+
     form_rules = (
         FieldSet(('organizations',),
                  'Отправитель(-и)/получатель(-и)'),
-        FieldSet(('parent', 'our_outbox_number', 'date_approved'),
+        FieldSet(('parent', ),
+                 'Письмо-основание'),
+        FieldSet(('our_outbox_number', 'date_approved'),
                  'Исходящее письмо'),
         FieldSet(('our_inbox_number', "date_registered",
                   'number_inbox_approved', 'date_inbox_approved'),
@@ -153,5 +173,9 @@ class MessageModelView(CreateRetrieveUpdateModelView):
         'autocomplete': 'off',
         'data-role': '',
     }
-    for date in ['date_registered', 'date_inbox_approved', 'date_approved']:
+    date_approved_format = date_widget_format.copy()
+    date_approved_format['disabled'] = True
+    form_widget_args['date_approved'] = date_approved_format
+
+    for date in ['date_registered', 'date_inbox_approved']:
         form_widget_args[date] = date_widget_format

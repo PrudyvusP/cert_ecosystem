@@ -108,14 +108,9 @@
   </div>
 </form>
 {% endif %}
+{% endblock %}
 
-<script>
-    function ShowHideDiv() {
-    var chkYes = document.getElementById("chkYes");
-    var file = document.getElementById("file");
-    file.disabled = chkNo.checked ? "disabled" : true;
-    file.required = chkNo.checked ? "disabled": true;
-    file.disabled = chkYes.checked ? "disabled" : false;
-    }
-</script>
+{% block tail %}
+{{ super() }}
+<script src="{{ url_for('static', filename='js/file_hider.js') }}"></script>
 {% endblock %}

@@ -208,7 +208,8 @@ message_fields_placeholders = dict(
         'rows': MESSAGE_INFORMATION_ROWS_CONST,
         'placeholder': MESSAGE_INFO_PLACEHOLDER
     },
-    our_outbox_number={'placeholder': MESSAGE_OUT_OUR_TEXT},
+    our_outbox_number={'placeholder': MESSAGE_OUT_OUR_TEXT,
+                       'disabled': True},
     our_inbox_number={'placeholder': MESSAGE_IN_TEXT},
     number_inbox_approved={'placeholder': MESSAGE_OUT_TEXT}
 )

@@ -1,0 +1,21 @@
+{% extends 'admin/model/create.html' %}
+
+{% block body %}
+<div class="form-group">
+  <h3>Выберете тип письма:</h3>
+  <label class="control-label" for="outboxChoice">
+    <input type="radio" id="outboxChoice" name="msg_type" onclick="HideMsgType()">
+  Исходящее
+  </label>
+  <label class="control-label" for="inboxChoice">
+    <input type="radio" id="inboxChoice" name="msg_type" checked onclick="HideMsgType()">
+  Входящее
+  </label>
+</div>
+{{ super() }}
+{% endblock %}
+
+{% block tail %}
+{{ super() }}
+<script src="{{ url_for('static', filename='js/message_hider.js') }}"></script>
+{% endblock %}

@@ -14,7 +14,7 @@ class Config:
 
     BABEL_DEFAULT_LOCALE = 'ru'
     FLASK_ADMIN_FLUID_LAYOUT = True
-    FLASK_ADMIN_SWATCH = 'cerulean'
+    FLASK_ADMIN_SWATCH = 'journal'
 
     BASE_DIR = basedir
     STATIC_FOLDER = 'static'

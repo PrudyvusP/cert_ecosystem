@@ -1,5 +1,6 @@
 from flask import Flask
 from flask_admin import Admin
+import logging
 
 from .commands import index
 from .config import DevConfig, ProdConfig, TestConfig
@@ -75,6 +76,8 @@ def create_app():
                   'production': ProdConfig}
 
     app = Flask(__name__)
+    log = logging.getLogger('werkzeug')
+    log.setLevel(logging.ERROR)
     app.config.from_object(conf_types.get(app.config['ENV']))
     db.init_app(app)
     migrate.init_app(app, db)
