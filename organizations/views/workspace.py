@@ -95,7 +95,7 @@ class WorkspaceView(BaseView):
                 exists = (
                     db.session.query(Organization)
                     .filter(Organization.full_name == found_organization['full_name'])
-                    .filter(Organization.short_name == found_organization['short_name'])
+                    .filter(Organization.kpp == found_organization['kpp'])
                     .filter(Organization.inn == found_organization['inn'])
                 ).first()
                 if exists:

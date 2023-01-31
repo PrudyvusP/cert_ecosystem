@@ -10,6 +10,7 @@
       <th class="align-middle">Полное название организации</th>
       <th class="align-middle">Сокращенное название организации</th>
       <th class="align-middle">ИНН</th>
+      <th class="align-middle">КПП</th>
       <th class="align-middle">В рабочем пространстве?</th>
     </tr>
     </thead>
@@ -19,8 +20,15 @@
       <td class="align-middle">
           {{ found_organization['full_name'] }}
       </td>
-      <td class="align-middle">{{ found_organization['short_name'] }}</td>
+      <td class="align-middle">
+        {% if found_organization['short_name'] %}
+          {{ found_organization['short_name'] }}
+        {% else %}
+          отсутствует
+        {% endif %}
+        </td>
       <td class="align-middle">{{ found_organization['inn'] }}</td>
+      <td class="align-middle">{{ found_organization['kpp'] }}</td>
       <td class="align-middle">
         {% if not found_organization['is_workspace'] %}
           <form action="{{ url_for('workspace.add_to_workspace') }}" method="post">
