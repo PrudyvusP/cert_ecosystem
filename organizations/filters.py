@@ -51,8 +51,7 @@ class OrgDocumentsFilter(filters.FilterInList):
     есть организационно-распорядительные документы."""
     def apply(self, query, value, alias=None):
         return (query
-                .join(OrgAdmDocOrganization,
-                      Organization.org_id == OrgAdmDocOrganization.org_id)
+                .join(OrgAdmDocOrganization, Organization.org_adm_doc)
                 .filter(OrgAdmDocOrganization.orgadm_id.in_(value))
                 )
 
