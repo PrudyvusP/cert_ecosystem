@@ -1,5 +1,6 @@
 from flask_admin.babel import lazy_gettext
 from flask_admin.contrib.sqla import filters
+from sqlalchemy import func
 
 from .extentions import db
 from .models import (Organization, Resource,
@@ -39,6 +40,7 @@ class OrgRegionFilter(filters.FilterInList):
 class OrgOkrugFilter(filters.FilterInList):
     """Фильтр на список организаций,
     расположенных в округах, id которых переданы."""
+
     def apply(self, query, value, alias=None):
         return (query
                 .join(Region, Organization.region_id == Region.region_id)
@@ -46,14 +48,39 @@ class OrgOkrugFilter(filters.FilterInList):
                 .filter(Region.okrug_id.in_(value))
                 )
 
+
 class OrgDocumentsFilter(filters.FilterInList):
     """Фильтр на список организаций, у которых
-    есть организационно-распорядительные документы."""
+    есть организационно-распорядительные документы (любой из списка)."""
+
     def apply(self, query, value, alias=None):
         return (query
                 .join(OrgAdmDocOrganization, Organization.org_adm_doc)
                 .filter(OrgAdmDocOrganization.orgadm_id.in_(value))
                 )
+
+    def operation(self):
+        return lazy_gettext('в списке (логическое ИЛИ)')
+
+
+class OrgDocumentsAndFilter(filters.FilterInList):
+    """Фильтр на список организаций, у которых
+    есть организационно-распорядительные документы (каждый из списка)."""
+
+    def apply(self, query, value, alias=None):
+        subquery = (
+            db.session.query(Organization.org_id)
+            .join(OrgAdmDocOrganization, Organization.org_adm_doc)
+            .filter(OrgAdmDocOrganization.orgadm_id.in_(value))
+            .group_by(Organization.org_id)
+            .having(func.count(OrgAdmDocOrganization.orgadm_id) == len(value))
+            .all()
+        )
+        subquery_list_results = [org_id[0] for org_id in subquery]
+        return query.filter(Organization.org_id.in_(subquery_list_results))
+
+    def operation(self):
+        return lazy_gettext('в списке (логическое И)')
 
 
 class OrgIsSubjectKIIFilter(filters.BaseSQLAFilter):

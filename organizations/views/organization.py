@@ -13,7 +13,7 @@ from ..exceptions import (OrgFileNotSavedError, DirNotCreatedError,
 from ..extentions import db
 from ..filters import (OrgRegionFilter,
                        OrgHasAgreementFilter, OrgDocumentsFilter,
-                       OrgOkrugFilter)
+                       OrgOkrugFilter, OrgDocumentsAndFilter)
 from ..forms import (AddSubjectDocumentForm, validate_future_date,
                      validate_inn, validate_ogrn, validate_kpp)
 from ..models import (Organization, Region, OrgAdmDoc,
@@ -145,7 +145,7 @@ class OrganizationModelView(CreateRetrieveUpdateModelView):
                                                  'okrug_id',
                                                  'name')
                 ),
-                OrgDocumentsFilter(
+                OrgDocumentsAndFilter(
                     None,
                     name='Наличие документа(-ов)',
                     options=get_instance_choices(
@@ -154,7 +154,7 @@ class OrganizationModelView(CreateRetrieveUpdateModelView):
                         'name',
                         _name_limiter=ORGADM_DOC_NAME_CONST
                     )
-                )
+                ),
             ]
         )
         self._refresh_filters_cache()
