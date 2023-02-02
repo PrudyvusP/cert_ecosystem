@@ -3,6 +3,7 @@ from datetime import date
 from http import HTTPStatus
 
 from flask import abort, current_app, flash, redirect, send_file, url_for
+from flask import request
 from flask_admin import expose
 from flask_admin.form.rules import FieldSet
 from wtforms.validators import Optional
@@ -12,13 +13,12 @@ from ..exceptions import (OrgFileNotSavedError, DirNotCreatedError,
                           OrgPDFNotCreatedError)
 from ..extentions import db
 from ..filters import (OrgRegionFilter,
-                       OrgHasAgreementFilter, OrgDocumentsFilter,
-                       OrgOkrugFilter, OrgDocumentsAndFilter)
+                       OrgHasAgreementFilter, OrgOkrugFilter, OrgDocumentsAndFilter)
 from ..forms import (AddSubjectDocumentForm, validate_future_date,
                      validate_inn, validate_ogrn, validate_kpp)
 from ..models import (Organization, Region, OrgAdmDoc,
                       OrgAdmDocOrganization, Okrug,
-                      Message, Resource)
+                      Message)
 from ..utils import (create_pdf, create_dot_pdf,
                      get_alpha_num_string)
 from ..utils import get_instance_choices
@@ -59,10 +59,9 @@ class OrganizationModelView(CreateRetrieveUpdateModelView):
     list_template = 'admin/org_list.html'
 
     column_default_sort = [('date_added', True),
-                           ('date_updated', True),
-                           ('org_id', True),
-                           ('full_name', True),
+                           ('full_name', False),
                            ('inn', False)]
+
     column_descriptions = dictionary.organization_fields_descriptions
     column_editable_list = ['contacts']
     column_exclude_list = ['short_name', 'uuid', 'id', 'date_added',
@@ -186,22 +185,28 @@ class OrganizationModelView(CreateRetrieveUpdateModelView):
             number_inbox_approved = form.number_inbox_approved.data
             date_inbox_approved = form.date_inbox_approved.data
 
-            information = f'о направлении документа "{document.name}"'
+            if (
+                    date_registered
+                    or date_inbox_approved
+                    or len(our_inbox_number) > 0
+                    or len(number_inbox_approved) > 0):
+                information = f'о направлении документа "{document.name}"'
 
-            message = Message(our_inbox_number=our_inbox_number,
-                              date_registered=date_registered,
-                              number_inbox_approved=number_inbox_approved,
-                              date_inbox_approved=date_inbox_approved,
-                              information=information)
+                message = Message(our_inbox_number=our_inbox_number,
+                                  date_registered=date_registered,
+                                  number_inbox_approved=number_inbox_approved,
+                                  date_inbox_approved=date_inbox_approved,
+                                  information=information)
 
-            org.messages.append(message)
-            db.session.add(org)
+                org.messages.append(message)
+                db.session.add(org)
 
             org_adm_doc_exists = (
                 (OrgAdmDocOrganization
                  .query
                  .filter(OrgAdmDocOrganization.organization == org)
-                 .filter(OrgAdmDocOrganization.org_doc == document))
+                 .filter(OrgAdmDocOrganization.org_doc == document)
+                 )
             ).first()
 
             if org_adm_doc_exists:
@@ -220,6 +225,10 @@ class OrganizationModelView(CreateRetrieveUpdateModelView):
                     comment=comment
                 )
                 db.session.add(new_org_doc)
+
+            if request.form.get('document-type') == 'yes':
+                org.date_agreement = date_approved
+                db.session.add(org)
 
             uploaded_file = form.doc_file.data
             dir_name = os.path.join(current_app.config['DIR_WITH_ORG_FILES'],

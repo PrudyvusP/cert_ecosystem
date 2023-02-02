@@ -1,5 +1,4 @@
 import datetime
-import re
 
 import wtforms
 from flask_wtf import FlaskForm
@@ -81,19 +80,19 @@ class AddSubjectDocumentForm(BaseFormWithSubmit):
                                  validators=[Optional()])
 
     our_inbox_number = wtforms.StringField("Наш номер входящего письма:",
-                                           validators=[CustomInputRequired()],
+                                           validators=[Optional()],
                                            render_kw={
                                                "placeholder": "1111"})
 
     date_registered = wtforms.DateField("Дата регистрации входящего письма:",
-                                        validators=[CustomInputRequired(),
+                                        validators=[Optional(),
                                                     validate_future_date]
                                         )
     number_inbox_approved = wtforms.StringField("Подписной номер входящего письма:",
-                                                validators=[CustomInputRequired()],
+                                                validators=[Optional()],
                                                 render_kw={
                                                     "placeholder": "ЛПУ-16"})
     date_inbox_approved = wtforms.DateField("Дата подписи входящего письма:",
-                                            validators=[CustomInputRequired(),
+                                            validators=[Optional(),
                                                         validate_future_date]
                                             )

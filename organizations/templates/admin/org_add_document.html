@@ -59,7 +59,7 @@
     </div>
   </div>
   <div class="row mt-2">
-
+    
     <div class="col-8">
       {{ form.comment.label }}
       {{ form.comment(class="form-control") }}
@@ -67,8 +67,20 @@
       <span style="color:red;">{{ error }}</span>
       {% endfor %}
     </div>
+    <div class="col-2">
+      <div class="mt-2">Документ - главный?<br>
+        <label for="document-type_1">
+          <input type="radio" name="document-type" id="document-type_1" value="yes" required>
+          Да
+        </label>
+        <label for="document-type_2">
+          <input type="radio" name="document-type" id="document-type_2" value="nope">
+          Нет
+        </label>
+      </div>
+    </div>
   </div>
-  <p class="mt-3 h5">Письмо, с которым поступил документ</p>
+  <p class="mt-3 h5">Письмо, с которым поступил документ (необязательно)</p>
   <div class="row mt-3">
     <div class="col-4">
       {{ form.date_registered.label }}
