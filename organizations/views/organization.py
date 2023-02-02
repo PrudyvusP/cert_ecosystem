@@ -58,7 +58,8 @@ class OrganizationModelView(CreateRetrieveUpdateModelView):
     # LIST options
     list_template = 'admin/org_list.html'
 
-    column_default_sort = [('date_added', True),
+    column_default_sort = [('date_updated', True),
+                           ('date_added', True),
                            ('full_name', False),
                            ('inn', False)]
 
