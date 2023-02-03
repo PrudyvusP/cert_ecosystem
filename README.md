@@ -199,7 +199,10 @@ pg_dump -U <POSTGRES_USER> -h <DB_HOST> -p <DB_PORT> -d <DB_NAME> > <dump_name>.
 ```
 Подробнее о бэкапе можно почитать [тут](https://habr.com/ru/post/595641/).
 
-
+Для резервного копирования файлов организации может использоваться команда:
+```bash
+tar -zcf <path_to_dir_for_backups>.cert_org_files_backup-$(date +"%d-%m-%Y_%H-%M").tar.gz -C <path_to_dir_with_service>/cert_ecosystem/organizations/static/organizations .  
+```
 ### Демонстрация бизнес-логики
 
 Для быстрого развертывания предусмотрен скрипт **setup.sh**, который создаст виртуальное
