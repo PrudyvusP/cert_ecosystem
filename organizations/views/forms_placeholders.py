@@ -272,7 +272,8 @@ orgadmdoc_fields_descriptions = dict(
 )
 
 methoddoc_fields_labels = dict(
-    name="Название вида методического документа",
+    name="Полное название",
+    short_name="Сокращенное название",
     date_approved="Дата утверждения",
     props="Реквизиты",
     path_prefix="Служебное наименование",
@@ -284,6 +285,7 @@ methoddoc_fields_labels = dict(
 
 methoddoc_fields_descriptions = dict(
     name="Полное название вида методического документа",
+    short_name="Сокращенное название вида методического документа",
     date_approved="Дата утверждения методического документа",
     props="Реквизиты методического документа",
     path_prefix="Служебное наименование (для хранения в файловой структуре)",

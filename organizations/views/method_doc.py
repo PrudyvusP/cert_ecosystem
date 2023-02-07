@@ -31,7 +31,6 @@ class MethodDocModelView(ModelView):
     column_list = ('name', 'date_approved', 'props',
                    'is_conf', 'is_active',
                    'date_added', 'date_updated')
-    column_exclude_list = ('data', 'path_prefix')
     column_default_sort = ('name')
     list_template = 'admin/method-doc_list.html'
 
