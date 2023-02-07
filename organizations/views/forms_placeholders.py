@@ -152,7 +152,7 @@ organization_fields_labels = dict(
     contacts='Контакты',
     date_agreement='Дата подписания соглашения',
     agreement_unit='Главное подразделение',
-    is_gov='ГОВ', is_military='ВОЕН',
+    is_gov='ГОС', is_military='ВОЕН',
     db_name='Название организации', region='Регион',
     is_subject_kii='СКИИ',
     date_added='Дата внесения в БД',

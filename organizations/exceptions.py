@@ -28,3 +28,7 @@ class ModelAttributeError(Exception):
 
 class EgrulApiWrongFormatError(Exception):
     pass
+
+
+class MethodicalDocWrongFileNameError(Exception):
+    pass

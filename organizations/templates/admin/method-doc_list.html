@@ -3,18 +3,8 @@
 {% block body %}
 <div class="h4 text-center text-primary">
   <a href="{{ url_for('method-docs.get_all_method_docs') }}">
-    Скачать архив со всеми методическими документами
+    Скачать архив со всеми актуальными методическими документами
   </a>
 </div>
 {{ super() }}
-{% endblock %}
-
-{% block list_row_actions %}
-    {{ super() }}
-    <a class="icon"
-       href="{{ url_for('method-docs.get_method_doc_file', method_doc_id=get_pk_value(row)) }}"
-       title="">
-    <span class="fa fa-file glyphicon glyphicon-file"
-          title="Скачать pdf-образ"></span>
-    </a>
 {% endblock %}

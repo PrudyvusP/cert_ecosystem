@@ -6,7 +6,7 @@ from sqlalchemy.orm import backref
 
 from .extentions import db
 from .utils import (generate_uuid, get_alpha_num_string,
-                    get_quick_query_count, create_dot_pdf)
+                    get_quick_query_count)
 
 regions_resources_table = db.Table(
     "regions_resources",
@@ -425,6 +425,7 @@ class MethodicalDoc(DateAddedCreatedMixin, db.Model):
     is_active = db.Column(db.Boolean, nullable=False,
                           default=True)
     data = db.Column(db.LargeBinary)
+    data_extension = db.Column(db.String(10))
 
     messages = db.relationship("Message",
                                secondary=methodicaldocs_messages,
@@ -436,12 +437,14 @@ class MethodicalDoc(DateAddedCreatedMixin, db.Model):
         return self.name[:40]
 
     @property
-    def get_pdf_file(self):
+    def get_file(self):
         return BytesIO(self.data)
 
     @property
-    def get_pdf_file_name(self):
-        return create_dot_pdf(self.short_name)
+    def get_file_name(self):
+        if self.data_extension:
+            return self.short_name + self.data_extension
+        return 'file.pdf'
 
 
 class OrgAdmDoc(DateAddedCreatedMixin, db.Model):

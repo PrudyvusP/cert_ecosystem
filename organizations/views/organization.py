@@ -75,6 +75,7 @@ class OrganizationModelView(CreateRetrieveUpdateModelView):
                           Organization.date_agreement,
                           'Наличие соглашения о сот-ве'
                       ),
+                      'is_gov'
                       )
     column_formatters_export = dict(
         is_gov=lambda v, c, m, p: '+' if m.is_gov is True else '-',
