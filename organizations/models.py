@@ -1,11 +1,12 @@
 from datetime import date, datetime
+from io import BytesIO
 
 from flask_sqlalchemy import BaseQuery
 from sqlalchemy.orm import backref
 
 from .extentions import db
 from .utils import (generate_uuid, get_alpha_num_string,
-                    get_quick_query_count)
+                    get_quick_query_count, create_dot_pdf)
 
 regions_resources_table = db.Table(
     "regions_resources",
@@ -422,6 +423,7 @@ class MethodicalDoc(DateAddedCreatedMixin, db.Model):
                         default=False)
     is_active = db.Column(db.Boolean, nullable=False,
                           default=True)
+    data = db.Column(db.LargeBinary)
 
     messages = db.relationship("Message",
                                secondary=methodicaldocs_messages,
@@ -431,6 +433,14 @@ class MethodicalDoc(DateAddedCreatedMixin, db.Model):
 
     def __repr__(self):
         return self.name[:40]
+
+    @property
+    def get_pdf_file(self):
+        return BytesIO(self.data)
+
+    @property
+    def get_pdf_file_name(self):
+        return create_dot_pdf(self.name)
 
 
 class OrgAdmDoc(DateAddedCreatedMixin, db.Model):

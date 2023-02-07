@@ -1,14 +1,16 @@
+import logging
+
 from flask import Flask
 from flask_admin import Admin
-import logging
 
 from .commands import index
 from .config import DevConfig, ProdConfig, TestConfig
 from .extentions import db, babel, migrate
 from .models import (Organization, Resource,
-                     OrgAdmDoc, Message)
+                     OrgAdmDoc, Message, MethodicalDoc)
 from .views.home_view import HomeView
 from .views.message import MessageModelView
+from .views.method_doc import MethodDocModelView
 from .views.orgadmdoc import OrgAdmDocModelView
 from .views.organization import OrganizationModelView
 from .views.resource import ResourceModelView
@@ -65,6 +67,14 @@ def init_admin(app):
         WorkspaceView(
             name='Поиск в ЕГРЮЛ',
             endpoint='workspace')
+    )
+
+    admin.add_view(
+        MethodDocModelView(
+            MethodicalDoc,
+            db.session,
+            name='Методические материалы',
+            endpoint='method-docs')
     )
 
 
