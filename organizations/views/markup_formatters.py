@@ -52,3 +52,10 @@ def method_doc_formatter(view, context, model, name) -> str:
                   method_doc_id=model.method_id)
     full_url = f"<a href={url}>{model.name}</a>"
     return Markup(full_url)
+
+def org_name_formatter(view, context, model, name) -> str:
+    """Возвращает ссылку на отображение профиля организации по названию."""
+    url = url_for('organizations.details_view',
+                  id=model.org_id)
+    full_url = f"<a href={url}>{model.full_name}</a>"
+    return Markup(full_url)

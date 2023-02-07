@@ -8,6 +8,7 @@ from flask_admin import expose
 from flask_admin.form.rules import FieldSet
 from wtforms.validators import Optional
 
+from .markup_formatters import org_name_formatter
 from .master import CreateRetrieveUpdateModelView
 from ..exceptions import (OrgFileNotSavedError, DirNotCreatedError,
                           OrgPDFNotCreatedError)
@@ -77,6 +78,11 @@ class OrganizationModelView(CreateRetrieveUpdateModelView):
                       ),
                       'is_gov'
                       )
+
+    column_formatters = {
+        "full_name": org_name_formatter
+    }
+
     column_formatters_export = dict(
         is_gov=lambda v, c, m, p: '+' if m.is_gov is True else '-',
         is_military=lambda v, c, m, p: '+' if m.is_military is True else '-',
