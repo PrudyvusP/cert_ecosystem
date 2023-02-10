@@ -31,6 +31,10 @@ class Config:
     EGRUL_SERVICE_URL = environ.get('EGRUL_SERVICE_URL',
                                     'http://localhost:28961/')
 
+    METHOD_DOCS_PATH = environ.get('METHOD_DOCS_PATH',
+                                   '/tmp/')
+    DOCX_TEMPLATE_PATH = environ.get('DOCX_TEMPLATE_PATH')
+
 
 class ProdConfig(Config):
     """Настройки для продакшена."""

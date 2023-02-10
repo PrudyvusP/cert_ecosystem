@@ -1,19 +1,26 @@
 {% extends 'admin/model/list.html' %}
 
 {% block list_row_actions %}
-    <a class="icon"
-       href="{{ url_for('organizations.edit_view', id=get_pk_value(row)) }}"
-       title="">
+<a class="icon"
+   href="{{ url_for('organizations.edit_view', id=get_pk_value(row)) }}"
+   title="">
     <span class="fa fa-pencil glyphicon glyphicon-pencil"
           title="Редактировать запись"></span>
-    </a>
+</a>
 
-    <a class="icon"
-       href="{{ url_for('organizations.org_documents_view', org_id=get_pk_value(row)) }}"
-       title="">
+<a class="icon"
+   href="{{ url_for('organizations.org_documents_view', org_id=get_pk_value(row)) }}"
+   title="">
     <span class="fa fa-paperclip glyphicon glyphicon-paperclip"
           title="Прикрепить документ"></span>
-    </a>
+</a>
+
+<a class="icon"
+   href="{{ url_for('organizations.org_send_method_docs', org_id=get_pk_value(row)) }}"
+   title="">
+    <span class="fa fa-envelope glyphicon glyphicon-envelope"
+          title="Отправить методические документы"></span>
+</a>
 {% endblock %}
 
 <!--

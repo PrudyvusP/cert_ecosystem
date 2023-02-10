@@ -1,7 +1,11 @@
 import os
+import zipfile
 from datetime import date
 from http import HTTPStatus
 
+import pycdlib
+from babel.dates import format_date
+from docxtpl import DocxTemplate
 from flask import abort, current_app, flash, redirect, send_file, url_for
 from flask import request
 from flask_admin import expose
@@ -14,19 +18,22 @@ from ..exceptions import (OrgFileNotSavedError, DirNotCreatedError,
                           OrgPDFNotCreatedError)
 from ..extentions import db
 from ..filters import (OrgRegionFilter,
-                       OrgHasAgreementFilter, OrgOkrugFilter, OrgDocumentsAndFilter)
+                       OrgHasAgreementFilter, OrgOkrugFilter,
+                       OrgDocumentsAndFilter)
 from ..forms import (AddSubjectDocumentForm, validate_future_date,
-                     validate_inn, validate_ogrn, validate_kpp)
+                     validate_inn, validate_ogrn, validate_kpp,
+                     SendMethodDocsToOrgForm, sender_choices)
+from ..lingva_master import LingvaMaster
 from ..models import (Organization, Region, OrgAdmDoc,
                       OrgAdmDocOrganization, Okrug,
-                      Message)
+                      Message, MethodicalDoc)
 from ..utils import (create_pdf, create_dot_pdf,
                      get_alpha_num_string)
 from ..utils import get_instance_choices
 from ..views import forms_placeholders as dictionary
 
-DIR_NOT_CREATED_MSG = "Главная директория организаций не создалась"
 BASE_PDF_NOT_CREATED_MSG = "Базовый pdf-файл не смог создаться"
+DIR_NOT_CREATED_MSG = "Главная директория организаций не создалась"
 FILE_NOT_CREATED_MSG = "Образ документа не смог сохраниться"
 FILENAME_CONST = 20
 
@@ -35,6 +42,14 @@ ORGADM_DOC_NAME_CONST = 80
 PDF_MIMETYPE_CONST = "application/pdf"
 SEARCH_MODEL_TEXT = "Название, ИНН, КПП"
 SUCCESS_DATA_UPLOAD_MSG = "Данные успешно добавлены"
+
+METHOD_DOC_ARCHIVE_NAME = "методические документы.7z"
+METHOD_DOC_CONF_TEXT = 'Конфиденциально'
+METHOD_DOC_DOCX_FILE_NAME = 'методички.docx'
+METHOD_DOC_INPUT_MESSAGE_REQUEST_TEXT = 'Запрос методических документов'
+METHOD_DOC_ISO_FILE_NAME = 'для записи на диск.iso'
+METHOD_DOC_OUTPUT_MESSAGE_TEXT = 'О направлении методических документов'
+METHOD_DOC_OUTPUT_NUMBER_TEXT = 'номер и дату необходимо заполнить'
 
 
 class OrganizationModelView(CreateRetrieveUpdateModelView):
@@ -55,7 +70,6 @@ class OrganizationModelView(CreateRetrieveUpdateModelView):
     column_export_exclude_list = ['uuid', 'org_id', 'db_name',
                                   'date_added', 'is_gov', 'is_military',
                                   'date_updated', 'is_active']
-
     # LIST options
     list_template = 'admin/org_list.html'
 
@@ -291,3 +305,178 @@ class OrganizationModelView(CreateRetrieveUpdateModelView):
         org = Organization.query.get_or_404(org_id)
         s_resources = [(res.resource_id, res.name) for res in org.resources]
         return dict(s_resources)
+
+    @expose('<int:org_id>/send-method-docs/', methods=['GET', 'POST'])
+    def org_send_method_docs(self, org_id: int):
+        """View-функция для отправки организации методических документов."""
+        org = Organization.query.get_or_404(org_id)
+        form = SendMethodDocsToOrgForm()
+        form.submit.label.text = "Создать письмо"
+        form.organization_name.data = org.short_name
+        form.org_address.data = org.factual_address
+
+        method_docs = (db.session.query(MethodicalDoc)
+                       .filter(MethodicalDoc.is_active.is_(True))
+                       .order_by(MethodicalDoc.name)
+                       .all()
+                       )
+
+        form.method_docs.choices = [
+            (method_doc.method_id,
+             method_doc.name)
+            for method_doc in method_docs
+        ]
+        if form.validate_on_submit():
+
+            recipient_position = form.recipient_position.data
+            recipient_fio = form.recipient_fio.data
+            recipient_gender = form.recipient_gender.data
+            recipient_address = form.org_address.data
+
+            our_inbox_number = form.our_inbox_number.data
+            date_registered = form.date_registered.data
+            number_inbox_approved = form.number_inbox_approved.data
+            date_inbox_approved = form.date_inbox_approved.data
+
+            chosen_method_docs = form.method_docs.data
+            disk = form.disk.data
+
+            sender_position = form.sender.data
+
+            chosen_method_docs = (
+                db.session
+                .query(MethodicalDoc)
+                .filter(MethodicalDoc.method_id.in_(chosen_method_docs))
+                .order_by(MethodicalDoc.name)
+                .all()
+            )
+
+            rel_dir_for_results = (f'{str(date.today())}'
+                                   f'-{org.get_org_dir_name()}')
+
+            abs_dir_for_results = os.path.join(
+                current_app.config['METHOD_DOCS_PATH'],
+                rel_dir_for_results)
+
+            os.makedirs(abs_dir_for_results, exist_ok=True)
+
+            zip_path = os.path.join(abs_dir_for_results,
+                                    METHOD_DOC_ARCHIVE_NAME)
+
+            # TODO function which creates ZIP
+
+            with zipfile.ZipFile(zip_path, 'w') as zf:
+                for chosen_method_doc in chosen_method_docs:
+                    data = zipfile.ZipInfo(chosen_method_doc.get_file_name)
+                    data.compress_type = zipfile.ZIP_DEFLATED
+                    zf.writestr(data, chosen_method_doc.get_file.read())
+
+            application_file_name = os.path.basename(zip_path)
+
+            # TODO function which creates ISO
+            iso = pycdlib.PyCdlib()
+            iso.new(joliet=3)
+            iso.add_file(zip_path,
+                         joliet_path=os.path.join('/',
+                                                  application_file_name
+                                                  )
+                         )
+            iso_path = os.path.join(abs_dir_for_results,
+                                    METHOD_DOC_ISO_FILE_NAME)
+            iso.write(iso_path)
+            iso.close()
+
+            inbox_message = None
+            letter_previous_link = None
+            letter_conf_text = None
+            if (
+                    date_registered
+                    or date_inbox_approved
+                    or len(our_inbox_number) > 0
+                    or len(number_inbox_approved) > 0):
+
+                inbox_message = Message(
+                    our_inbox_number=our_inbox_number,
+                    date_registered=date_registered,
+                    number_inbox_approved=number_inbox_approved,
+                    date_inbox_approved=date_inbox_approved,
+                    information=METHOD_DOC_INPUT_MESSAGE_REQUEST_TEXT
+                )
+
+                org.messages.append(inbox_message)
+
+                if date_inbox_approved and len(number_inbox_approved) > 0:
+                    letter_previous_link = (
+                        f'(на № {number_inbox_approved}'
+                        f' от {date_inbox_approved.strftime("%d.%m.%Y")})'
+                    )
+
+            outbox_message = Message(
+                parent=inbox_message,
+                information=METHOD_DOC_OUTPUT_MESSAGE_TEXT,
+                our_outbox_number=METHOD_DOC_OUTPUT_NUMBER_TEXT,
+                date_approved=date.today()
+            )
+
+            # TODO фильтр по сообщениям, которые надо заполнить
+
+            org.messages.append(outbox_message)
+            outbox_message.methodical_docs.extend(chosen_method_docs)
+            db.session.add(org)
+
+            recipient = LingvaMaster(gender=recipient_gender,
+                                     fio=recipient_fio)
+
+            org.boss_fio = recipient.fio
+
+            docx = DocxTemplate(current_app.config['DOCX_TEMPLATE_PATH'])
+
+            if [doc.is_conf for doc in chosen_method_docs if doc.is_conf]:
+                letter_conf_text = METHOD_DOC_CONF_TEXT
+
+            letter_application = (f'файл "{application_file_name}",'
+                                  f' {os.path.getsize(zip_path)} байт')
+            letter_header = METHOD_DOC_OUTPUT_MESSAGE_TEXT
+            letter_greeting = recipient.get_doc_greeting()
+
+            letter_month_year = (
+                    format_date(
+                        date.today(),
+                        locale='ru',
+                        format='MMMM YYYY')
+                    + ' г.'
+            )
+
+            letter_method_docs = "; ".join(
+                [f'"{doc.name}"' for doc in chosen_method_docs]
+            )
+
+            letter_context = {
+                'recipient_position': recipient_position,
+                'recipient_initials':
+                    recipient.get_dative_last_name_with_initials(),
+                'recipient_address': recipient_address,
+                'letter_month_year': letter_month_year,
+                'letter_header': letter_header,
+                'letter_previous_link': letter_previous_link,
+                'letter_greeting': letter_greeting,
+                'letter_method_docs': letter_method_docs,
+                'disk': disk,
+                'letter_application': letter_application,
+                'letter_conf_text': letter_conf_text,
+                'letter_sender_position': sender_position,
+                'letter_sender_fio': sender_choices[sender_position]
+            }
+
+            docx.render(letter_context)
+            docx_path = os.path.join(abs_dir_for_results,
+                                     METHOD_DOC_DOCX_FILE_NAME)
+            docx.save(docx_path)
+            os.remove(zip_path)
+            db.session.commit()
+            flash(SUCCESS_DATA_UPLOAD_MSG)
+            return redirect(url_for("organizations.details_view",
+                                    id=org.org_id)
+                            )
+
+        return self.render('admin/org_send_method_docs.html', form=form)

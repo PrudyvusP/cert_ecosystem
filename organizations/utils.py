@@ -33,10 +33,16 @@ def create_dot_pdf(name: str) -> str:
     return name + '.pdf'
 
 
-def get_alpha_num_string(name: str) -> str:
+def get_alpha_num_string(strq: str) -> str:
     """Возвращает строку без лишних символов."""
     pattern = r'[^A-zА-яёЁ0-9]'
-    return re.sub(pattern, '', name.lower())
+    return re.sub(pattern, '', strq.lower())
+
+
+def get_string_wo_special_symbols(strq: str) -> str:
+    """Возврощает строку без специальных символов."""
+    pattern = r'[?",.<>|:\/]'
+    return re.sub(pattern, ' ', strq)
 
 
 def generate_uuid() -> str:

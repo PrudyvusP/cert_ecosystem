@@ -6,7 +6,8 @@ from sqlalchemy.orm import backref
 
 from .extentions import db
 from .utils import (generate_uuid, get_alpha_num_string,
-                    get_quick_query_count)
+                    get_quick_query_count,
+                    get_string_wo_special_symbols)
 
 regions_resources_table = db.Table(
     "regions_resources",
@@ -193,6 +194,9 @@ class Organization(DateAddedCreatedMixin, db.Model):
     def first_two_uuid_symb(self):
         return self.uuid[:2].upper()
 
+    def get_org_dir_name(self):
+        return get_string_wo_special_symbols(self.short_name[:60])
+
     def __repr__(self):
         name = self.full_name[:88]
         if self.inn or self.kpp:
@@ -222,7 +226,6 @@ class Message(db.Model):
     methodical_docs = db.relationship("MethodicalDoc",
                                       secondary=methodicaldocs_messages,
                                       back_populates="messages",
-                                      cascade="all, delete",
                                       )
 
     organizations = db.relationship("Organization",
