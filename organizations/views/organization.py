@@ -1,21 +1,28 @@
 import os
+import shutil
 import zipfile
 from datetime import date
-from http import HTTPStatus
 
 import pycdlib
 from babel.dates import format_date
 from docxtpl import DocxTemplate
-from flask import abort, current_app, flash, redirect, send_file, url_for
-from flask import request
+from flask import (current_app as app, flash, redirect,
+                   send_file, url_for, request)
 from flask_admin import expose
 from flask_admin.form.rules import FieldSet
 from wtforms.validators import Optional
 
 from .markup_formatters import org_name_formatter
 from .master import CreateRetrieveUpdateModelView
-from ..exceptions import (OrgFileNotSavedError, DirNotCreatedError,
-                          OrgPDFNotCreatedError)
+from .system_messages_for_user import (METHOD_DOC_DIR_NOT_CREATED_TEXT,
+                                       METHOD_DOC_ISO_NOT_CREATED_TEXT,
+                                       METHOD_DOC_LETTER_NOT_CREATED_TEXT,
+                                       METHOD_DOC_ARCHIVE_NOT_CREATED_TEXT,
+                                       ADM_DOC_DIR_NOT_CREATED_TEXT,
+                                       ADM_DOC_FILE_NOT_CREATED_TEXT,
+                                       ADM_DOC_CONF_FILE_NOT_CREATED_TEXT,
+                                       ADM_DOC_FILE_IS_NOT_PDF_TEXT,
+                                       SUCCESS_DATA_UPLOAD_MSG)
 from ..extentions import db
 from ..filters import (OrgRegionFilter,
                        OrgHasAgreementFilter, OrgOkrugFilter,
@@ -32,17 +39,17 @@ from ..utils import (create_pdf, create_dot_pdf,
 from ..utils import get_instance_choices
 from ..views import forms_placeholders as dictionary
 
-BASE_PDF_NOT_CREATED_MSG = "Базовый pdf-файл не смог создаться"
-DIR_NOT_CREATED_MSG = "Главная директория организаций не создалась"
-FILE_NOT_CREATED_MSG = "Образ документа не смог сохраниться"
+# Служебные константы
 FILENAME_CONST = 20
-
-NOT_PDF_MIMETYPE_MSG = "Not PDF!"
 ORGADM_DOC_NAME_CONST = 80
 PDF_MIMETYPE_CONST = "application/pdf"
-SEARCH_MODEL_TEXT = "Название, ИНН, КПП"
-SUCCESS_DATA_UPLOAD_MSG = "Данные успешно добавлены"
+ORGADM_DOC_IS_MAIN_CHOICE = "yes"
 
+# Константы для моделей
+SEARCH_MODEL_TEXT = "Название, ИНН, КПП"
+
+# Настраиваемые константы для осуществления действий
+LETTER_DATE_FORMAT = "%d.%m.%Y"
 METHOD_DOC_ARCHIVE_NAME = "методические документы.7z"
 METHOD_DOC_CONF_TEXT = 'Конфиденциально'
 METHOD_DOC_DOCX_FILE_NAME = 'методички.docx'
@@ -106,7 +113,8 @@ class OrganizationModelView(CreateRetrieveUpdateModelView):
     column_searchable_list = ['db_name', 'short_name', 'inn', 'kpp']
 
     def search_placeholder(self):
-        """Переопределяет текст, отображаемый в Поиске по модели организации."""
+        """Переопределяет текст, отображаемый в Поиске
+         по модели организации."""
         return SEARCH_MODEL_TEXT
 
     column_sortable_list = ('full_name', ('region', 'region.name'),
@@ -248,36 +256,60 @@ class OrganizationModelView(CreateRetrieveUpdateModelView):
                 )
                 db.session.add(new_org_doc)
 
-            if request.form.get('document-type') == 'yes':
+            if request.form.get('document-type') == ORGADM_DOC_IS_MAIN_CHOICE:
                 org.date_agreement = date_approved
                 db.session.add(org)
 
             uploaded_file = form.doc_file.data
-            dir_name = os.path.join(current_app.config['DIR_WITH_ORG_FILES'],
+            dir_name = os.path.join(app.config['DIR_WITH_ORG_FILES'],
                                     org.first_two_uuid_symb,
                                     org.uuid)
             try:
                 os.makedirs(dir_name, exist_ok=True)
-            except Exception:
-                raise DirNotCreatedError(DIR_NOT_CREATED_MSG)
+            except OSError as e:
+                flash(ADM_DOC_DIR_NOT_CREATED_TEXT,
+                      category='error')
+                app.logger.error(e)
+                return redirect(url_for(
+                    "organizations.org_documents_view",
+                    org_id=org.org_id)
+                )
             filename = os.path.join(dir_name,
                                     create_dot_pdf(document.name_prefix)
                                     )
             if uploaded_file:
                 if uploaded_file.mimetype != PDF_MIMETYPE_CONST:
-                    return abort(HTTPStatus.BAD_REQUEST,
-                                 NOT_PDF_MIMETYPE_MSG)
+                    flash(ADM_DOC_FILE_IS_NOT_PDF_TEXT,
+                          category='error')
+                    return redirect(url_for(
+                        "organizations.org_documents_view",
+                        org_id=org.org_id)
+                    )
                 try:
                     uploaded_file.save(filename)
-                except Exception:
-                    raise OrgFileNotSavedError(FILE_NOT_CREATED_MSG)
+                except OSError as e:
+                    flash(ADM_DOC_FILE_NOT_CREATED_TEXT,
+                          category='error')
+                    app.logger.error(e)
+                    return redirect(url_for(
+                        "organizations.org_documents_view",
+                        org_id=org.org_id)
+                    )
             else:
                 try:
                     create_pdf(filename)
-                except Exception:
-                    raise OrgPDFNotCreatedError(BASE_PDF_NOT_CREATED_MSG)
+                except Exception as e:
+                    flash(ADM_DOC_CONF_FILE_NOT_CREATED_TEXT,
+                          category='error')
+                    app.logger.error(e)
+                    return redirect(url_for(
+                        "organizations.org_documents_view",
+                        org_id=org.org_id)
+                    )
+
             db.session.commit()
-            flash(SUCCESS_DATA_UPLOAD_MSG)
+            flash(SUCCESS_DATA_UPLOAD_MSG,
+                  category='success')
             return redirect(url_for("organizations.details_view",
                                     id=org.org_id)
                             )
@@ -288,7 +320,7 @@ class OrganizationModelView(CreateRetrieveUpdateModelView):
         """Возвращает файл документа организации."""
         org = db.session.query(Organization).get_or_404(org_id)
         doc = OrgAdmDoc.query.get_or_404(doc_id)
-        file_path = os.path.join(current_app.config['DIR_WITH_ORG_FILES'],
+        file_path = os.path.join(app.config['DIR_WITH_ORG_FILES'],
                                  org.first_two_uuid_symb,
                                  org.uuid,
                                  create_dot_pdf(doc.name_prefix))
@@ -355,36 +387,62 @@ class OrganizationModelView(CreateRetrieveUpdateModelView):
                                    f'-{org.get_org_dir_name()}')
 
             abs_dir_for_results = os.path.join(
-                current_app.config['METHOD_DOCS_PATH'],
+                app.config['METHOD_DOCS_PATH'],
                 rel_dir_for_results)
 
-            os.makedirs(abs_dir_for_results, exist_ok=True)
+            try:
+                os.makedirs(abs_dir_for_results, exist_ok=True)
+            except OSError as e:
+                flash(METHOD_DOC_DIR_NOT_CREATED_TEXT,
+                      category='error')
+                app.logger.error(e)
+                return redirect(url_for(
+                    "organizations.org_send_method_docs",
+                    org_id=org.org_id)
+                )
 
             zip_path = os.path.join(abs_dir_for_results,
                                     METHOD_DOC_ARCHIVE_NAME)
 
             # TODO function which creates ZIP
-
-            with zipfile.ZipFile(zip_path, 'w') as zf:
-                for chosen_method_doc in chosen_method_docs:
-                    data = zipfile.ZipInfo(chosen_method_doc.get_file_name)
-                    data.compress_type = zipfile.ZIP_DEFLATED
-                    zf.writestr(data, chosen_method_doc.get_file.read())
-
-            application_file_name = os.path.basename(zip_path)
-
-            # TODO function which creates ISO
-            iso = pycdlib.PyCdlib()
-            iso.new(joliet=3)
-            iso.add_file(zip_path,
-                         joliet_path=os.path.join('/',
-                                                  application_file_name
-                                                  )
-                         )
-            iso_path = os.path.join(abs_dir_for_results,
-                                    METHOD_DOC_ISO_FILE_NAME)
-            iso.write(iso_path)
-            iso.close()
+            try:
+                with zipfile.ZipFile(zip_path, 'w') as zf:
+                    for chosen_method_doc in chosen_method_docs:
+                        data = zipfile.ZipInfo(chosen_method_doc.get_file_name)
+                        data.compress_type = zipfile.ZIP_DEFLATED
+                        zf.writestr(data, chosen_method_doc.get_file.read())
+                application_file_name = os.path.basename(zip_path)
+            except Exception as e:
+                flash(METHOD_DOC_ARCHIVE_NOT_CREATED_TEXT,
+                      category='error')
+                app.logger.error(e)
+                shutil.rmtree(abs_dir_for_results)
+                return redirect(url_for(
+                    "organizations.org_send_method_docs",
+                    org_id=org.org_id)
+                )
+            else:
+                iso = pycdlib.PyCdlib()
+                iso.new(joliet=3)
+                iso.add_file(zip_path,
+                             joliet_path=os.path.join('/',
+                                                      application_file_name
+                                                      )
+                             )
+                iso_path = os.path.join(abs_dir_for_results,
+                                        METHOD_DOC_ISO_FILE_NAME)
+                try:
+                    iso.write(iso_path)
+                except Exception as e:
+                    flash(METHOD_DOC_ISO_NOT_CREATED_TEXT,
+                          category='error')
+                    app.logger.error(e)
+                    return redirect(url_for(
+                        "organizations.org_send_method_docs",
+                        org_id=org.org_id)
+                    )
+                finally:
+                    iso.close()
 
             inbox_message = None
             letter_previous_link = None
@@ -407,8 +465,8 @@ class OrganizationModelView(CreateRetrieveUpdateModelView):
 
                 if date_inbox_approved and len(number_inbox_approved) > 0:
                     letter_previous_link = (
-                        f'(на № {number_inbox_approved}'
-                        f' от {date_inbox_approved.strftime("%d.%m.%Y")})'
+                        f'(на № {number_inbox_approved} от '
+                        f'{date_inbox_approved.strftime(LETTER_DATE_FORMAT)})'
                     )
 
             outbox_message = Message(
@@ -418,8 +476,6 @@ class OrganizationModelView(CreateRetrieveUpdateModelView):
                 date_approved=date.today()
             )
 
-            # TODO фильтр по сообщениям, которые надо заполнить
-
             org.messages.append(outbox_message)
             outbox_message.methodical_docs.extend(chosen_method_docs)
             db.session.add(org)
@@ -428,8 +484,7 @@ class OrganizationModelView(CreateRetrieveUpdateModelView):
                                      fio=recipient_fio)
 
             org.boss_fio = recipient.fio
-
-            docx = DocxTemplate(current_app.config['DOCX_TEMPLATE_PATH'])
+            docx = DocxTemplate(app.config['DOCX_TEMPLATE_PATH'])
 
             if [doc.is_conf for doc in chosen_method_docs if doc.is_conf]:
                 letter_conf_text = METHOD_DOC_CONF_TEXT
@@ -439,13 +494,10 @@ class OrganizationModelView(CreateRetrieveUpdateModelView):
             letter_header = METHOD_DOC_OUTPUT_MESSAGE_TEXT
             letter_greeting = recipient.get_doc_greeting()
 
-            letter_month_year = (
-                    format_date(
-                        date.today(),
-                        locale='ru',
-                        format='MMMM YYYY')
-                    + ' г.'
-            )
+            letter_month_year = (format_date(
+                date.today(),
+                locale='ru',
+                format='MMMM YYYY') + ' г.')
 
             letter_method_docs = "; ".join(
                 [f'"{doc.name}"' for doc in chosen_method_docs]
@@ -468,15 +520,30 @@ class OrganizationModelView(CreateRetrieveUpdateModelView):
                 'letter_sender_fio': sender_choices[sender_position]
             }
 
-            docx.render(letter_context)
-            docx_path = os.path.join(abs_dir_for_results,
-                                     METHOD_DOC_DOCX_FILE_NAME)
-            docx.save(docx_path)
-            os.remove(zip_path)
-            db.session.commit()
-            flash(SUCCESS_DATA_UPLOAD_MSG)
-            return redirect(url_for("organizations.details_view",
-                                    id=org.org_id)
-                            )
+            try:
+                docx.render(letter_context)
+            except Exception as e:
+                flash(METHOD_DOC_LETTER_NOT_CREATED_TEXT,
+                      category='error')
+                app.logger.error(e)
+                db.session.rollback()
+                shutil.rmtree(abs_dir_for_results)
+                return redirect(url_for(
+                    "organizations.org_send_method_docs",
+                    org_id=org.org_id)
+                )
+            else:
+                docx_path = os.path.join(abs_dir_for_results,
+                                         METHOD_DOC_DOCX_FILE_NAME)
+                docx.save(docx_path)
+
+                os.remove(zip_path)
+                db.session.commit()
+                flash(SUCCESS_DATA_UPLOAD_MSG,
+                      category='success')
+                return redirect(url_for(
+                    "organizations.details_view",
+                    id=org.org_id)
+                )
 
         return self.render('admin/org_send_method_docs.html', form=form)

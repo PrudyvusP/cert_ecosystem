@@ -5,22 +5,17 @@ from pathlib import Path
 
 from flask import send_file
 from flask_admin import expose
-from flask_admin.contrib.sqla import ModelView
 from flask_wtf.file import FileField
 from wtforms.validators import InputRequired, ValidationError
-from .master import CreateRetrieveUpdateModelView
+
 from .forms_placeholders import methoddoc_fields_labels
-from ..exceptions import MethodicalDocWrongFileNameError
+from .markup_formatters import method_doc_formatter
+from .master import CreateRetrieveUpdateModelView
+from .system_messages_for_user import (METHOD_DOC_BASE_FILE_FORMAT_TEXT,
+                                       METHODICAL_DOC_FILE_ERROR_MESSAGE)
 from ..extentions import db
 from ..models import MethodicalDoc
 from ..utils import create_prefix
-from .markup_formatters import method_doc_formatter
-
-METHODICAL_DOC_FILE_ERROR_MESSAGE = ("Документ не смог сохраниться."
-                                     " Попробуйте удалить точки из названия"
-                                     " файла за исключением его расширения"
-                                     " и загрузить еще раз!")
-FILE_HAS_NO_EXTENSION_ERROR_MESSAGE = "У файла должно быть расширение!"
 
 
 class MethodDocModelView(CreateRetrieveUpdateModelView):
@@ -40,7 +35,7 @@ class MethodDocModelView(CreateRetrieveUpdateModelView):
     column_default_sort = ('is_active', 'name')
 
     column_formatters = {
-        "name" : method_doc_formatter
+        "name": method_doc_formatter
     }
     list_template = 'admin/method-doc_list.html'
 
@@ -69,7 +64,7 @@ class MethodDocModelView(CreateRetrieveUpdateModelView):
             extensions = ''.join(Path(file.filename).suffixes)
             if len(extensions) < 1:
                 raise ValidationError(
-                    FILE_HAS_NO_EXTENSION_ERROR_MESSAGE
+                    METHOD_DOC_BASE_FILE_FORMAT_TEXT
                 )
             model.data = file.read()
             model.data_extension = extensions
@@ -78,9 +73,7 @@ class MethodDocModelView(CreateRetrieveUpdateModelView):
             db.session.commit()
         except Exception:
             db.session.rollback()
-            raise MethodicalDocWrongFileNameError(
-                METHODICAL_DOC_FILE_ERROR_MESSAGE
-            )
+            raise ValidationError(METHODICAL_DOC_FILE_ERROR_MESSAGE)
 
     @expose('/<int:method_doc_id>/')
     def get_method_doc_file(self, method_doc_id: int):
@@ -102,7 +95,7 @@ class MethodDocModelView(CreateRetrieveUpdateModelView):
         memory_archive = BytesIO()
         method_docs = (db.session
                        .query(MethodicalDoc)
-                        .filter(MethodicalDoc.is_active.is_(True))
+                       .filter(MethodicalDoc.is_active.is_(True))
                        .all()
                        )
 

@@ -46,12 +46,14 @@ def children_list_formatter(view, context, model, name):
         return Markup(markup_string)
     return SYMB_CONST
 
+
 def method_doc_formatter(view, context, model, name) -> str:
     """Возвращает ссылку на скачивание файла документа по названию."""
     url = url_for('method-docs.get_method_doc_file',
                   method_doc_id=model.method_id)
     full_url = f"<a href={url}>{model.name}</a>"
     return Markup(full_url)
+
 
 def org_name_formatter(view, context, model, name) -> str:
     """Возвращает ссылку на отображение профиля организации по названию."""
