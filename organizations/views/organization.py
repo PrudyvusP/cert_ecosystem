@@ -391,8 +391,10 @@ class OrganizationModelView(CreateRetrieveUpdateModelView):
                 app.config['METHOD_DOCS_PATH'],
                 rel_dir_for_results)
 
+            old_mask = os.umask(0o022)
             try:
-                os.makedirs(abs_dir_for_results, exist_ok=True)
+                os.umask(0o000)
+                os.makedirs(abs_dir_for_results, mode=0o777, exist_ok=True)
             except OSError as e:
                 flash(METHOD_DOC_DIR_NOT_CREATED_TEXT,
                       category='error')
@@ -543,7 +545,7 @@ class OrganizationModelView(CreateRetrieveUpdateModelView):
                 docx_path = os.path.join(abs_dir_for_results,
                                          METHOD_DOC_DOCX_FILE_NAME)
                 docx.save(docx_path)
-
+                os.umask(old_mask)
                 os.remove(zip_path)
                 db.session.commit()
                 flash(SUCCESS_DATA_UPLOAD_MSG,
@@ -552,5 +554,4 @@ class OrganizationModelView(CreateRetrieveUpdateModelView):
                     "organizations.details_view",
                     id=org.org_id)
                 )
-
         return self.render('admin/org_send_method_docs.html', form=form)
