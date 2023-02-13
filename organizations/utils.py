@@ -42,7 +42,7 @@ def get_alpha_num_string(strq: str) -> str:
 def get_string_wo_special_symbols(strq: str) -> str:
     """Возврощает строку без специальных символов."""
     pattern = r'[?",.<>|:\/]'
-    return re.sub(pattern, ' ', strq)
+    return re.sub(pattern, '', strq)
 
 
 def generate_uuid() -> str:
@@ -81,3 +81,9 @@ def get_instance_choices(model,
     if not _name_limiter:
         return q
     return [(param[0], param[1][:_name_limiter]) for param in q]
+
+
+def cast_string_to_non_breaking_space(strq: str,
+                                      phrase: str) -> str:
+    "Возвращает строку с неразрывными пробелами вместо обычных."
+    return re.sub(phrase, "\xa0".join(phrase.split()), strq)

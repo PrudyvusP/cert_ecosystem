@@ -35,7 +35,7 @@ from ..models import (Organization, Region, OrgAdmDoc,
                       OrgAdmDocOrganization, Okrug,
                       Message, MethodicalDoc)
 from ..utils import (create_pdf, create_dot_pdf,
-                     get_alpha_num_string)
+                     get_alpha_num_string, cast_string_to_non_breaking_space)
 from ..utils import get_instance_choices
 from ..views import forms_placeholders as dictionary
 
@@ -44,6 +44,7 @@ FILENAME_CONST = 20
 ORGADM_DOC_NAME_CONST = 80
 PDF_MIMETYPE_CONST = "application/pdf"
 ORGADM_DOC_IS_MAIN_CHOICE = "yes"
+LETTER_PHRASE_WITH_NON_BREAKABLE_SPACE = 'Российской Федерации'
 
 # Константы для моделей
 SEARCH_MODEL_TEXT = "Название, ИНН, КПП"
@@ -404,7 +405,6 @@ class OrganizationModelView(CreateRetrieveUpdateModelView):
             zip_path = os.path.join(abs_dir_for_results,
                                     METHOD_DOC_ARCHIVE_NAME)
 
-            # TODO function which creates ZIP
             try:
                 with zipfile.ZipFile(zip_path, 'w') as zf:
                     for chosen_method_doc in chosen_method_docs:
@@ -499,9 +499,16 @@ class OrganizationModelView(CreateRetrieveUpdateModelView):
                 locale='ru',
                 format='MMMM YYYY') + ' г.')
 
-            letter_method_docs = "; ".join(
-                [f'"{doc.name}"' for doc in chosen_method_docs]
-            )
+            method_docs_names = []
+            for doc in chosen_method_docs:
+                doc_name = doc.name
+                if LETTER_PHRASE_WITH_NON_BREAKABLE_SPACE in doc_name:
+                    doc_name = cast_string_to_non_breaking_space(
+                        doc_name,
+                        LETTER_PHRASE_WITH_NON_BREAKABLE_SPACE
+                    )
+                    method_docs_names.append(f'"{doc_name}"')
+            letter_method_docs = "; ".join(method_docs_names)
 
             letter_context = {
                 'recipient_position': recipient_position,
