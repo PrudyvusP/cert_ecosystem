@@ -527,7 +527,7 @@ class OrganizationModelView(CreateRetrieveUpdateModelView):
                         doc_name,
                         LETTER_PHRASE_WITH_NON_BREAKABLE_SPACE
                     )
-                    method_docs_names.append(f'"{doc_name}"')
+                method_docs_names.append(f'"{doc_name}"')
             letter_method_docs = "; ".join(method_docs_names)
 
             letter_context = {
