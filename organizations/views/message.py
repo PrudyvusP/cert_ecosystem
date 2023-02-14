@@ -5,7 +5,7 @@ from wtforms.validators import Length, InputRequired
 
 from .markup_formatters import (org_list_formatter,
                                 parent_single_formatter,
-                                children_list_formatter)
+                                children_list_formatter, methodical_docs_formatter)
 from .master import (CreateRetrieveUpdateModelView,
                      MESSAGE_DEFAULT_FORMATTERS)
 from .system_messages_for_user import (MESSAGE_NO_ORG_CHOSEN_TEXT,
@@ -77,7 +77,8 @@ class MessageModelView(CreateRetrieveUpdateModelView):
         Markup(m.information.replace('\n', '<br>')),
         "organizations": org_list_formatter,
         "parent": parent_single_formatter,
-        "children": children_list_formatter
+        "children": children_list_formatter,
+        "methodical_docs": methodical_docs_formatter,
     }
     column_formatters_export = {
         "information": lambda v, c, m, p: m.information
@@ -106,7 +107,8 @@ class MessageModelView(CreateRetrieveUpdateModelView):
                            'parent', 'date_inbox_approved',
                            'number_inbox_approved', 'date_registered',
                            'children', 'our_inbox_number', 'date_approved',
-                           'our_outbox_number', 'information']
+                           'our_outbox_number', 'information',
+                           'methodical_docs']
     column_type_formatters_detail = MESSAGE_DEFAULT_FORMATTERS
 
     # CREATE / UPDATE options

@@ -47,6 +47,18 @@ def children_list_formatter(view, context, model, name):
     return SYMB_CONST
 
 
+def methodical_docs_formatter(view, context, model, name):
+    """Возвращает форматированный перечень прикрепленных методических
+    рекомендаций к сообщению."""
+    if model.methodical_docs:
+        results = []
+        for row, methodical_doc in enumerate(model.methodical_docs):
+            results.append(f'{row + 1}. {methodical_doc.name}')
+        markup_string = ';<br>'.join(results)
+        return Markup(markup_string)
+    return SYMB_CONST
+
+
 def method_doc_formatter(view, context, model, name) -> str:
     """Возвращает ссылку на скачивание файла документа по названию."""
     url = url_for('method-docs.get_method_doc_file',

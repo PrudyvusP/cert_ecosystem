@@ -228,6 +228,7 @@ class Message(db.Model):
     methodical_docs = db.relationship("MethodicalDoc",
                                       secondary=methodicaldocs_messages,
                                       back_populates="messages",
+                                      order_by='MethodicalDoc.name'
                                       )
 
     organizations = db.relationship("Organization",

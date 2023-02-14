@@ -359,11 +359,9 @@ class OrganizationModelView(CreateRetrieveUpdateModelView):
         """View-функция для отправки организации методических документов."""
         org = Organization.query.get_or_404(org_id)
         form = SendMethodDocsToOrgForm()
-        form.submit.label.text = "Создать письмо"
-        form.organization_name.data = org.short_name
-        form.org_address.data = org.factual_address
 
-        method_docs = (db.session.query(MethodicalDoc)
+        method_docs = (db.session
+                       .query(MethodicalDoc)
                        .filter(MethodicalDoc.is_active.is_(True))
                        .order_by(MethodicalDoc.name)
                        .all()
@@ -374,8 +372,11 @@ class OrganizationModelView(CreateRetrieveUpdateModelView):
              method_doc.name)
             for method_doc in method_docs
         ]
-        if form.validate_on_submit():
 
+        form.submit.label.text = "Создать письмо"
+        form.organization_name.data = org.short_name
+
+        if form.validate_on_submit() and request.method == 'POST':
             recipient_position = form.recipient_position.data
             recipient_fio = form.recipient_fio.data
             recipient_gender = form.recipient_gender.data
@@ -502,6 +503,7 @@ class OrganizationModelView(CreateRetrieveUpdateModelView):
                                      fio=recipient_fio)
 
             org.boss_fio = recipient.fio
+            org.boss_position = recipient_position
             docx = DocxTemplate(app.config['DOCX_TEMPLATE_PATH'])
 
             if [doc.is_conf for doc in chosen_method_docs if doc.is_conf]:
@@ -570,4 +572,8 @@ class OrganizationModelView(CreateRetrieveUpdateModelView):
                     "organizations.details_view",
                     id=org.org_id)
                 )
+
+        form.org_address.data = org.factual_address
+        form.recipient_fio.data = org.boss_fio
+        form.recipient_position.data = org.boss_position
         return self.render('admin/org_send_method_docs.html', form=form)

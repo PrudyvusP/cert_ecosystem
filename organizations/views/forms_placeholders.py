@@ -185,7 +185,9 @@ message_fields_descriptions = dict(
     datetime_created='Дата создания письма в базе',
     datetime_updated='Дата обновления письма в базе',
     is_inbox='Письмо является входящим?',
-    organizations='Отправитель(-и) или получатель(-и) письма'
+    organizations='Отправитель(-и) или получатель(-и) письма',
+    children="Письма-исполнения",
+    methodical_docs="Прикрепленные к письму методические рекомендации"
 )
 
 message_fields_labels = dict(
@@ -201,7 +203,9 @@ message_fields_labels = dict(
     is_inbox='Входящее?',
     organizations='Отправители/Получатели',
     parent='Основание',
-    children='Исполнения')
+    children='Исполнения',
+    methodical_docs='Прикрепленные методички'
+)
 
 message_fields_placeholders = dict(
     information={
