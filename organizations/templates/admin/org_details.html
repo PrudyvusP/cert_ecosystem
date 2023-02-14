@@ -86,7 +86,7 @@
   </tr>
   {% for message in model.messages %}
   <tr>
-    {% if message.is_outgoing %}
+    {% if not message.is_inbox %}
       <td class="align-middle">Исх</td>
       <td class="align-middle">{{ message.date_approved.strftime("%d-%m-%Y") }}</td>
       <td class="align-middle">{{ message.our_outbox_number }}</td>

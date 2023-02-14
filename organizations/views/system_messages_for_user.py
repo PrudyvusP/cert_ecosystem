@@ -33,3 +33,10 @@ ADM_DOC_FILE_IS_NOT_PDF_TEXT = ("Не удалось загрузить файл
                                 " (Требуется PDF).")
 
 SUCCESS_DATA_UPLOAD_MSG = 'Данные успешно добавлены!'
+
+MESSAGE_NO_ORG_CHOSEN_TEXT = "Не выбрана организация"
+MESSAGE_TYPE_TEXT = "Письмо либо исходящее, либо входящее!"
+MESSAGE_DATE_REGISTERED_TEXT = ("Дата подписи не может"
+                                " быть позже даты регистрации!")
+
+FLASH_ERROR = "error"

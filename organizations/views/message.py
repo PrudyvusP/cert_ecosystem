@@ -8,6 +8,10 @@ from .markup_formatters import (org_list_formatter,
                                 children_list_formatter)
 from .master import (CreateRetrieveUpdateModelView,
                      MESSAGE_DEFAULT_FORMATTERS)
+from .system_messages_for_user import (MESSAGE_NO_ORG_CHOSEN_TEXT,
+                                       MESSAGE_TYPE_TEXT,
+                                       MESSAGE_DATE_REGISTERED_TEXT,
+                                       FLASH_ERROR)
 from ..extentions import db
 from ..forms import validate_future_date
 from ..models import Message, Organization
@@ -15,13 +19,8 @@ from ..views import forms_placeholders as dictionary
 
 CHOOSE_MAIN_MESSAGE_TEXT = "Выберете письмо-основание"
 CHOOSE_MULT_ORG_TEXT = "Выберете организацию (-и)"
-FLASH_ERROR = "error"
 
-MESSAGE_DATE_REGISTERED_TEXT = ("Дата подписи не может"
-                                " быть позже даты регистрации!")
 MESSAGE_INFORMATION_MIN_CONST = 10
-MESSAGE_NO_ORG_CHOSEN_TEXT = "Не выбрана организация"
-MESSAGE_TYPE_TEXT = "Письмо либо исходящее, либо входящее!"
 MESSAGE_VISIBLE_LEN_CONST = 70
 SEARCH_MODEL_TEXT = "Любые реквизиты письма"
 
@@ -61,9 +60,12 @@ class MessageModelView(CreateRetrieveUpdateModelView):
     # LIST options
     column_default_sort = ('datetime_created', True)
     column_descriptions = dictionary.message_fields_descriptions
-    column_filters = ['information', 'date_approved', 'our_outbox_number',
+    column_filters = ['information', 'is_inbox',
                       'date_inbox_approved', 'number_inbox_approved',
-                      'organizations.db_name']
+                      'date_registered', 'our_inbox_number',
+                      'organizations.db_name',
+                      'date_approved', 'our_outbox_number',
+                      ]
     column_formatters = {
         "information": lambda v, c, m, p:
         f"{m.information[:MESSAGE_VISIBLE_LEN_CONST]}..."
@@ -100,7 +102,7 @@ class MessageModelView(CreateRetrieveUpdateModelView):
     column_type_formatters = MESSAGE_DEFAULT_FORMATTERS
 
     # RETRIEVE OPTIONS
-    column_details_list = ['organizations', 'is_outgoing',
+    column_details_list = ['organizations', 'is_inbox',
                            'parent', 'date_inbox_approved',
                            'number_inbox_approved', 'date_registered',
                            'children', 'our_inbox_number', 'date_approved',
@@ -137,6 +139,7 @@ class MessageModelView(CreateRetrieveUpdateModelView):
                     'our_inbox_number',
                     'our_outbox_number',
                     'organizations',
+                    'is_inbox',
                     'parent')
 
     form_args = {
@@ -145,9 +148,10 @@ class MessageModelView(CreateRetrieveUpdateModelView):
         'date_approved': {'validators': [validate_future_date]},
         'information': {'validators': [Length(MESSAGE_INFORMATION_MIN_CONST)]},
         'organizations': {'validators': [
-            InputRequired(MESSAGE_NO_ORG_CHOSEN_TEXT)]}
-    }
+            InputRequired(MESSAGE_NO_ORG_CHOSEN_TEXT)]},
 
+    }
+    # Спрячем полное описание элементов формы
     for key in form_columns:
         if key in form_args:
             form_args[key]['description'] = ''
@@ -155,9 +159,10 @@ class MessageModelView(CreateRetrieveUpdateModelView):
             form_args[key] = {'description': ''}
 
     form_rules = (
+        FieldSet(('is_inbox',), 'Выберете тип письма'),
         FieldSet(('organizations',),
                  'Отправитель(-и)/получатель(-и)'),
-        FieldSet(('parent', ),
+        FieldSet(('parent',),
                  'Письмо-основание'),
         FieldSet(('our_outbox_number', 'date_approved'),
                  'Исходящее письмо'),
@@ -167,15 +172,15 @@ class MessageModelView(CreateRetrieveUpdateModelView):
         FieldSet(('information',),
                  'Содержание письма'),
     )
+
     form_widget_args = dictionary.message_fields_placeholders
     date_widget_format = {
         'type': 'date',
         'autocomplete': 'off',
         'data-role': '',
     }
-    date_approved_format = date_widget_format.copy()
-    date_approved_format['disabled'] = True
-    form_widget_args['date_approved'] = date_approved_format
+    form_widget_args['is_inbox'] = {'class': 'form-control-lg mx-3',
+                                    'style': "transform: scale(2.2)"}
 
-    for date in ['date_registered', 'date_inbox_approved']:
+    for date in ['date_registered', 'date_inbox_approved', 'date_approved']:
         form_widget_args[date] = date_widget_format

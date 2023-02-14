@@ -184,7 +184,7 @@ message_fields_descriptions = dict(
     information='Краткое описание документа, контакты исполнителя и т.д.',
     datetime_created='Дата создания письма в базе',
     datetime_updated='Дата обновления письма в базе',
-    is_outgoing='Письмо является исходящим?',
+    is_inbox='Письмо является входящим?',
     organizations='Отправитель(-и) или получатель(-и) письма'
 )
 
@@ -198,7 +198,7 @@ message_fields_labels = dict(
     information='О чем',
     datetime_created='Дата создания письма в базе',
     datetime_updated='Дата обновления письма в базе',
-    is_outgoing='Исх',
+    is_inbox='Входящее?',
     organizations='Отправители/Получатели',
     parent='Основание',
     children='Исполнения')
@@ -208,8 +208,7 @@ message_fields_placeholders = dict(
         'rows': MESSAGE_INFORMATION_ROWS_CONST,
         'placeholder': MESSAGE_INFO_PLACEHOLDER
     },
-    our_outbox_number={'placeholder': MESSAGE_OUT_OUR_TEXT,
-                       'disabled': True},
+    our_outbox_number={'placeholder': MESSAGE_OUT_OUR_TEXT},
     our_inbox_number={'placeholder': MESSAGE_IN_TEXT},
     number_inbox_approved={'placeholder': MESSAGE_OUT_TEXT}
 )

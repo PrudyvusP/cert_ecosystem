@@ -223,6 +223,8 @@ class Message(db.Model):
     datetime_created = db.Column(db.DateTime, default=datetime.today)
     datetime_updated = db.Column(db.DateTime, onupdate=datetime.today)
 
+    is_inbox = db.Column(db.Boolean, default=True)
+
     methodical_docs = db.relationship("MethodicalDoc",
                                       secondary=methodicaldocs_messages,
                                       back_populates="messages",
@@ -242,19 +244,13 @@ class Message(db.Model):
                                                remote_side=[message_id])
                                )
 
-    @property
-    def is_outgoing(self):
-        if self.our_outbox_number and self.date_approved:
-            return True
-        return False
-
     def __repr__(self):
-        if self.is_outgoing:
-            return (f'Исх. № {self.our_outbox_number}'
-                    f' от {self.date_approved}')
-        return (f'Вх. № {self.our_inbox_number}'
-                f' (№ {self.number_inbox_approved} от'
-                f' {self.date_inbox_approved})')
+        if self.is_inbox:
+            return (f'Вх. № {self.our_inbox_number}'
+                    f' (№ {self.number_inbox_approved} от'
+                    f' {self.date_inbox_approved})')
+        return (f'Исх. № {self.our_outbox_number}'
+                f' от {self.date_approved}')
 
 
 class Resource(DateAddedCreatedMixin, db.Model):

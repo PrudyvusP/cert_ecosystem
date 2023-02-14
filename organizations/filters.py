@@ -4,8 +4,7 @@ from sqlalchemy import func
 
 from .extentions import db
 from .models import (Organization, Resource,
-                     Region, Message, Responsibility,
-                     OrgAdmDocOrganization, Industry, Okrug)
+                     Region, OrgAdmDocOrganization, Industry, Okrug)
 
 OPTIONS = [('да', 'Да'), ('нет', 'Нет')]
 
@@ -37,6 +36,20 @@ class OrgRegionFilter(filters.FilterInList):
                 )
 
 
+class OrgRegionNotFilter(filters.FilterNotInList):
+    """Фильтр на список организаций,
+    расположенных не в регионах, id которых переданы."""
+
+    def apply(self, query, value, alias=None):
+        return (query
+                .join(Region, Organization.region)
+                .filter(~Organization.region_id.in_(value))
+                )
+
+    def operation(self):
+        return lazy_gettext('не в списке')
+
+
 class OrgOkrugFilter(filters.FilterInList):
     """Фильтр на список организаций,
     расположенных в округах, id которых переданы."""
@@ -47,6 +60,21 @@ class OrgOkrugFilter(filters.FilterInList):
                 .join(Okrug, Region.okrug_id == Okrug.okrug_id)
                 .filter(Region.okrug_id.in_(value))
                 )
+
+
+class OrgOkrugNotFilter(filters.FilterNotInList):
+    """Фильтр на список организаций,
+    расположенных не в округах, id которых переданы."""
+
+    def apply(self, query, value, alias=None):
+        return (query
+                .join(Region, Organization.region_id == Region.region_id)
+                .join(Okrug, Region.okrug_id == Okrug.okrug_id)
+                .filter(~Region.okrug_id.in_(value))
+                )
+
+    def operation(self):
+        return lazy_gettext('не в списке')
 
 
 class OrgDocumentsFilter(filters.FilterInList):
@@ -98,48 +126,6 @@ class OrgIsSubjectKIIFilter(filters.BaseSQLAFilter):
         if value == "да":
             return query.filter(Organization.org_id.in_(subjects_kii_ids))
         return query.filter(Organization.org_id.not_in(subjects_kii_ids))
-
-    def operation(self):
-        return lazy_gettext('?')
-
-    def get_options(self, view):
-        return OPTIONS
-
-
-class OrgHasHadAnyContactsWithUsFilter(filters.BaseSQLAFilter):
-    """Фильтр на список организаций,
-    с которыми было взаимодействие или не было такового."""
-
-    def apply(self, query, value, alias=None):
-        orgs_with_messages = (db.session
-                              .query(Organization.org_id)
-                              .join(Message, Organization.messages)
-                              )
-        orgs_with_resources = (db.session
-                               .query(Organization.org_id)
-                               .join(Resource, Organization.resources)
-                               )
-        orgs_with_documents = (
-            db.session.query(OrgAdmDocOrganization.org_id)
-        )
-        orgs_with_responsibility = (
-            db.session.query(Responsibility.org_id)
-        )
-        final_query = (orgs_with_messages.union(orgs_with_resources,
-                                                orgs_with_documents,
-                                                orgs_with_responsibility)
-                       .all()
-                       )
-        final_query = set(i for i, in final_query)
-        if value == 'да':
-            return (query
-                    .filter(Organization.org_id.in_(final_query))
-                    .order_by(Organization.full_name)
-                    )
-        return (query
-                .filter(Organization.org_id.not_in(final_query))
-                .order_by(Organization.full_name)
-                )
 
     def operation(self):
         return lazy_gettext('?')

@@ -22,11 +22,12 @@ from .system_messages_for_user import (METHOD_DOC_DIR_NOT_CREATED_TEXT,
                                        ADM_DOC_FILE_NOT_CREATED_TEXT,
                                        ADM_DOC_CONF_FILE_NOT_CREATED_TEXT,
                                        ADM_DOC_FILE_IS_NOT_PDF_TEXT,
-                                       SUCCESS_DATA_UPLOAD_MSG)
+                                       SUCCESS_DATA_UPLOAD_MSG,
+                                       FLASH_ERROR)
 from ..extentions import db
 from ..filters import (OrgRegionFilter,
                        OrgHasAgreementFilter, OrgOkrugFilter,
-                       OrgDocumentsAndFilter)
+                       OrgDocumentsAndFilter, OrgRegionNotFilter, OrgOkrugNotFilter)
 from ..forms import (AddSubjectDocumentForm, validate_future_date,
                      validate_inn, validate_ogrn, validate_kpp,
                      SendMethodDocsToOrgForm, sender_choices)
@@ -168,7 +169,21 @@ class OrganizationModelView(CreateRetrieveUpdateModelView):
                                                  'region_id',
                                                  'name')
                 ),
+                OrgRegionNotFilter(
+                    None,
+                    name='Регион(-ы) организаций',
+                    options=get_instance_choices(Region,
+                                                 'region_id',
+                                                 'name')
+                ),
                 OrgOkrugFilter(
+                    None,
+                    name='Округ(-и) организаций',
+                    options=get_instance_choices(Okrug,
+                                                 'okrug_id',
+                                                 'name')
+                ),
+                OrgOkrugNotFilter(
                     None,
                     name='Округ(-и) организаций',
                     options=get_instance_choices(Okrug,
@@ -269,7 +284,7 @@ class OrganizationModelView(CreateRetrieveUpdateModelView):
                 os.makedirs(dir_name, exist_ok=True)
             except OSError as e:
                 flash(ADM_DOC_DIR_NOT_CREATED_TEXT,
-                      category='error')
+                      category=FLASH_ERROR)
                 app.logger.error(e)
                 return redirect(url_for(
                     "organizations.org_documents_view",
@@ -281,7 +296,7 @@ class OrganizationModelView(CreateRetrieveUpdateModelView):
             if uploaded_file:
                 if uploaded_file.mimetype != PDF_MIMETYPE_CONST:
                     flash(ADM_DOC_FILE_IS_NOT_PDF_TEXT,
-                          category='error')
+                          category=FLASH_ERROR)
                     return redirect(url_for(
                         "organizations.org_documents_view",
                         org_id=org.org_id)
@@ -290,7 +305,7 @@ class OrganizationModelView(CreateRetrieveUpdateModelView):
                     uploaded_file.save(filename)
                 except OSError as e:
                     flash(ADM_DOC_FILE_NOT_CREATED_TEXT,
-                          category='error')
+                          category=FLASH_ERROR)
                     app.logger.error(e)
                     return redirect(url_for(
                         "organizations.org_documents_view",
@@ -301,7 +316,7 @@ class OrganizationModelView(CreateRetrieveUpdateModelView):
                     create_pdf(filename)
                 except Exception as e:
                     flash(ADM_DOC_CONF_FILE_NOT_CREATED_TEXT,
-                          category='error')
+                          category=FLASH_ERROR)
                     app.logger.error(e)
                     return redirect(url_for(
                         "organizations.org_documents_view",
@@ -397,7 +412,7 @@ class OrganizationModelView(CreateRetrieveUpdateModelView):
                 os.makedirs(abs_dir_for_results, mode=0o777, exist_ok=True)
             except OSError as e:
                 flash(METHOD_DOC_DIR_NOT_CREATED_TEXT,
-                      category='error')
+                      category=FLASH_ERROR)
                 app.logger.error(e)
                 return redirect(url_for(
                     "organizations.org_send_method_docs",
@@ -416,7 +431,7 @@ class OrganizationModelView(CreateRetrieveUpdateModelView):
                 application_file_name = os.path.basename(zip_path)
             except Exception as e:
                 flash(METHOD_DOC_ARCHIVE_NOT_CREATED_TEXT,
-                      category='error')
+                      category=FLASH_ERROR)
                 app.logger.error(e)
                 shutil.rmtree(abs_dir_for_results)
                 return redirect(url_for(
@@ -437,7 +452,7 @@ class OrganizationModelView(CreateRetrieveUpdateModelView):
                     iso.write(iso_path)
                 except Exception as e:
                     flash(METHOD_DOC_ISO_NOT_CREATED_TEXT,
-                          category='error')
+                          category=FLASH_ERROR)
                     app.logger.error(e)
                     return redirect(url_for(
                         "organizations.org_send_method_docs",
@@ -475,7 +490,8 @@ class OrganizationModelView(CreateRetrieveUpdateModelView):
                 parent=inbox_message,
                 information=METHOD_DOC_OUTPUT_MESSAGE_TEXT,
                 our_outbox_number=METHOD_DOC_OUTPUT_NUMBER_TEXT,
-                date_approved=date.today()
+                date_approved=date.today(),
+                is_inbox=False
             )
 
             org.messages.append(outbox_message)
@@ -533,7 +549,7 @@ class OrganizationModelView(CreateRetrieveUpdateModelView):
                 docx.render(letter_context)
             except Exception as e:
                 flash(METHOD_DOC_LETTER_NOT_CREATED_TEXT,
-                      category='error')
+                      category=FLASH_ERROR)
                 app.logger.error(e)
                 db.session.rollback()
                 shutil.rmtree(abs_dir_for_results)
