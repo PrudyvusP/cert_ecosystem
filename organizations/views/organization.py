@@ -521,7 +521,7 @@ class OrganizationModelView(CreateRetrieveUpdateModelView):
 
             method_docs_names = []
             for doc in chosen_method_docs:
-                doc_name = doc.name
+                doc_name = doc.name_for_letter or doc.name
                 if LETTER_PHRASE_WITH_NON_BREAKABLE_SPACE in doc_name:
                     doc_name = cast_string_to_non_breaking_space(
                         doc_name,

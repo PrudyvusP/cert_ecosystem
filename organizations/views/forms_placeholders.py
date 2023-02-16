@@ -276,14 +276,15 @@ orgadmdoc_fields_descriptions = dict(
 
 methoddoc_fields_labels = dict(
     name="Полное название",
-    short_name="Сокращенное название",
+    short_name="Сокращенное название (используется для генерации образов)",
     date_approved="Дата утверждения",
     props="Реквизиты",
     path_prefix="Служебное наименование",
     is_conf="Конфиденциальный?",
     is_active="Актуальный?",
     date_added="Дата добавления в БД",
-    date_updated="Дата актуализации в БД"
+    date_updated="Дата актуализации в БД",
+    name_for_letter='Название, используемое для отправки писем'
 )
 
 methoddoc_fields_descriptions = dict(
@@ -295,5 +296,6 @@ methoddoc_fields_descriptions = dict(
     is_conf="Признак конфеднециальности документа",
     is_active="Признак актуальности документа",
     date_added="Дата внесение информации о документе в БД",
-    date_updated="Дата актуализации информации о документе в БД"
+    date_updated="Дата актуализации информации о документе в БД",
+    name_for_letter='Название, используемое для генерации писем'
 )

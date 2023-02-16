@@ -417,6 +417,7 @@ class MethodicalDoc(DateAddedCreatedMixin, db.Model):
     method_id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.Text, nullable=False)
     short_name = db.Column(db.Text)
+    name_for_letter = db.Column(db.Text)
     date_approved = db.Column(db.Date)
     props = db.Column(db.Text)
     path_prefix = db.Column(db.Text, nullable=False)

@@ -46,7 +46,8 @@ class MethodDocModelView(CreateRetrieveUpdateModelView):
         'file': FileField('Образ загружаемого документа')
     }
     form_args = {
-        'short_name': {"validators": [InputRequired()]}
+        'short_name': {"validators": [InputRequired()]},
+        'name_for_letter': {"validators": [InputRequired()]}
     }
     date_widget_format = {
         'type': 'date',
