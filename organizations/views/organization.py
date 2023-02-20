@@ -54,9 +54,9 @@ SEARCH_MODEL_TEXT = "Название, ИНН, КПП"
 LETTER_DATE_FORMAT = "%d.%m.%Y"
 METHOD_DOC_ARCHIVE_NAME = "методические документы.7z"
 METHOD_DOC_CONF_TEXT = 'Конфиденциально'
-METHOD_DOC_DOCX_FILE_NAME = 'методички.docx'
+METHOD_DOC_DOCX_FILE_NAME = '.docx'
 METHOD_DOC_INPUT_MESSAGE_REQUEST_TEXT = 'Запрос методических документов'
-METHOD_DOC_ISO_FILE_NAME = 'для записи на диск.iso'
+METHOD_DOC_ISO_FILE_NAME = '.iso'
 METHOD_DOC_OUTPUT_MESSAGE_TEXT = 'О направлении методических документов'
 METHOD_DOC_OUTPUT_NUMBER_TEXT = 'номер и дату необходимо заполнить'
 
@@ -447,8 +447,10 @@ class OrganizationModelView(CreateRetrieveUpdateModelView):
                                                       application_file_name
                                                       )
                              )
-                iso_path = os.path.join(abs_dir_for_results,
-                                        METHOD_DOC_ISO_FILE_NAME)
+                iso_path = os.path.join(
+                    abs_dir_for_results,
+                    rel_dir_for_results + METHOD_DOC_ISO_FILE_NAME
+                )
                 try:
                     iso.write(iso_path)
                 except Exception as e:
@@ -560,8 +562,10 @@ class OrganizationModelView(CreateRetrieveUpdateModelView):
                     org_id=org.org_id)
                 )
             else:
-                docx_path = os.path.join(abs_dir_for_results,
-                                         METHOD_DOC_DOCX_FILE_NAME)
+                docx_path = os.path.join(
+                    abs_dir_for_results,
+                    rel_dir_for_results + METHOD_DOC_DOCX_FILE_NAME
+                )
                 docx.save(docx_path)
                 os.umask(old_mask)
                 os.remove(zip_path)
