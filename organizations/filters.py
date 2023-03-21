@@ -4,7 +4,7 @@ from sqlalchemy import func
 
 from .extentions import db
 from .models import (Organization, Resource,
-                     Region, OrgAdmDocOrganization, Industry, Okrug)
+                     Region, OrgAdmDocOrganization, Industry, Okrug, MethodicalDoc, Message)
 
 OPTIONS = [('да', 'Да'), ('нет', 'Нет')]
 
@@ -160,3 +160,25 @@ class ResourceOkrugFilter(filters.FilterInList):
                 .filter(Region.okrug_id.in_(value)
                         )
                 )
+
+
+class MessageIsMethodDoc(filters.BaseSQLAFilter):
+    """Фильтр на исходящие письма, содержащие
+    методические документы."""
+
+    def apply(self, query, value, alias=None):
+        subquery_methods = db.session.query(MethodicalDoc.method_id)
+        subquery_messages = (db.session
+                             .query(Message.message_id)
+                             .join(MethodicalDoc, Message.methodical_docs)
+                             .filter(MethodicalDoc.method_id.in_(subquery_methods))
+                             )
+        if value == "да":
+            return query.filter(Message.message_id.in_(subquery_messages))
+        return query.filter(~Message.message_id.in_(subquery_messages))
+
+    def operation(self):
+        return lazy_gettext('равно')
+
+    def get_options(self, view):
+        return OPTIONS

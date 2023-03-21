@@ -13,6 +13,7 @@ from .system_messages_for_user import (MESSAGE_NO_ORG_CHOSEN_TEXT,
                                        MESSAGE_DATE_REGISTERED_TEXT,
                                        FLASH_ERROR)
 from ..extentions import db
+from ..filters import MessageIsMethodDoc
 from ..forms import validate_future_date
 from ..models import Message, Organization
 from ..views import forms_placeholders as dictionary
@@ -65,6 +66,10 @@ class MessageModelView(CreateRetrieveUpdateModelView):
                       'date_registered', 'our_inbox_number',
                       'organizations.db_name',
                       'date_approved', 'our_outbox_number',
+                      MessageIsMethodDoc(
+                          None,
+                          'Письмо с методичками?'
+                      ),
                       ]
     column_formatters = {
         "information": lambda v, c, m, p:
