@@ -4,7 +4,8 @@ from sqlalchemy import func
 
 from .extentions import db
 from .models import (Organization, Resource,
-                     Region, OrgAdmDocOrganization, Industry, Okrug, MethodicalDoc, Message)
+                     Region, OrgAdmDocOrganization, Industry,
+                     MethodicalDoc, Message)
 
 OPTIONS = [('да', 'Да'), ('нет', 'Нет')]
 
@@ -30,10 +31,7 @@ class OrgRegionFilter(filters.FilterInList):
     расположенных в регионах, id которых переданы."""
 
     def apply(self, query, value, alias=None):
-        return (query
-                .join(Region, Organization.region)
-                .filter(Organization.region_id.in_(value))
-                )
+        return query.filter(Organization.region_id.in_(value))
 
 
 class OrgRegionNotFilter(filters.FilterNotInList):
@@ -41,10 +39,7 @@ class OrgRegionNotFilter(filters.FilterNotInList):
     расположенных не в регионах, id которых переданы."""
 
     def apply(self, query, value, alias=None):
-        return (query
-                .join(Region, Organization.region)
-                .filter(~Organization.region_id.in_(value))
-                )
+        return query.filter(~Organization.region_id.in_(value))
 
     def operation(self):
         return lazy_gettext('не в списке')
@@ -57,7 +52,6 @@ class OrgOkrugFilter(filters.FilterInList):
     def apply(self, query, value, alias=None):
         return (query
                 .join(Region, Organization.region_id == Region.region_id)
-                .join(Okrug, Region.okrug_id == Okrug.okrug_id)
                 .filter(Region.okrug_id.in_(value))
                 )
 
@@ -69,7 +63,6 @@ class OrgOkrugNotFilter(filters.FilterNotInList):
     def apply(self, query, value, alias=None):
         return (query
                 .join(Region, Organization.region_id == Region.region_id)
-                .join(Okrug, Region.okrug_id == Okrug.okrug_id)
                 .filter(~Region.okrug_id.in_(value))
                 )
 
@@ -117,11 +110,10 @@ class OrgIsSubjectKIIFilter(filters.BaseSQLAFilter):
 
     def apply(self, query, value, alias=None):
         subjects_kii_ids = (
-            db.session.query(
-                Organization.org_id.distinct()
-            ).join(Resource, Organization.resources)
-            .filter(Resource.is_okii.is_(True)
-                    )
+            db.session
+            .query(Organization.org_id.distinct())
+            .join(Resource, Organization.resources)
+            .filter(Resource.is_okii.is_(True))
         )
         if value == "да":
             return query.filter(Organization.org_id.in_(subjects_kii_ids))
@@ -145,18 +137,18 @@ class ResourceRegionFilter(filters.FilterInList):
 
 class ResourceIndustryFilter(filters.FilterInList):
     def apply(self, query, value, alias=None):
-        return (query
-                .join(Industry, Resource.industries)
-                .filter(Industry.industry_id.in_(value)
+        resource_ids = (db.session
+                        .query(Resource.resource_id.distinct())
+                        .join(Industry, Resource.industries)
+                        .filter(Industry.industry_id.in_(value))
                         )
-                )
+        return query.filter(Resource.resource_id.in_(resource_ids))
 
 
 class ResourceOkrugFilter(filters.FilterInList):
     def apply(self, query, value, alias=None):
         return (query
                 .join(Region, Resource.regions)
-                .join(Okrug, Region.okrug)
                 .filter(Region.okrug_id.in_(value)
                         )
                 )
@@ -171,7 +163,9 @@ class MessageIsMethodDoc(filters.BaseSQLAFilter):
         subquery_messages = (db.session
                              .query(Message.message_id)
                              .join(MethodicalDoc, Message.methodical_docs)
-                             .filter(MethodicalDoc.method_id.in_(subquery_methods))
+                             .filter(MethodicalDoc.method_id
+                                     .in_(subquery_methods)
+                                     )
                              )
         if value == "да":
             return query.filter(Message.message_id.in_(subquery_messages))
