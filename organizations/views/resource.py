@@ -6,7 +6,8 @@ from flask_admin.contrib.sqla.ajax import QueryAjaxModelLoader
 from sqlalchemy import func
 
 from .markup_formatters import org_list_formatter
-from .master import CreateRetrieveUpdateModelView
+from .master import BaseModelView
+from .system_messages_for_user import FLASH_ERROR
 from ..extentions import db
 from ..filters import (ResourceRegionFilter,
                        ResourceIndustryFilter,
@@ -20,13 +21,12 @@ from ..utils import get_instance_choices
 from ..views import forms_placeholders as dictionary
 
 CHOOSE_SINGLE_ORG_TEXT = "Выберете организацию"
-FLASH_ERROR = "error"
 INDEX_PATTERN = r"((?<!\d)\d{6}(?!\d))"
 RESOURCE_AJAX_OWNER_CONST = 3
 RESOURCE_NOT_DELETED_MSG = "Ресурсы не были удалены!"
 
 
-class ResourceModelView(CreateRetrieveUpdateModelView):
+class ResourceModelView(BaseModelView):
     """View-класс информационного ресурса."""
 
     def get_query(self):

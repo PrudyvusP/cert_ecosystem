@@ -13,7 +13,7 @@ from flask_admin.form.rules import FieldSet
 from wtforms.validators import Optional
 
 from .markup_formatters import org_name_formatter
-from .master import CreateRetrieveUpdateModelView
+from .master import BaseModelView
 from .system_messages_for_user import (METHOD_DOC_DIR_NOT_CREATED_TEXT,
                                        METHOD_DOC_ISO_NOT_CREATED_TEXT,
                                        METHOD_DOC_LETTER_NOT_CREATED_TEXT,
@@ -61,7 +61,7 @@ METHOD_DOC_OUTPUT_MESSAGE_TEXT = 'О направлении методическ
 METHOD_DOC_OUTPUT_NUMBER_TEXT = 'номер и дату необходимо заполнить'
 
 
-class OrganizationModelView(CreateRetrieveUpdateModelView):
+class OrganizationModelView(BaseModelView):
     """View-класс организации."""
 
     def on_model_change(self, form, model, is_created) -> None:
@@ -77,7 +77,8 @@ class OrganizationModelView(CreateRetrieveUpdateModelView):
 
     # MAIN options
     column_export_exclude_list = ['uuid', 'org_id', 'db_name',
-                                  'date_added', 'is_gov', 'is_military',
+                                  'date_added', 'boss_fio',
+                                  'boss_position', 'main_unit',
                                   'date_updated', 'is_active']
     # LIST options
     list_template = 'admin/org_list.html'
@@ -106,10 +107,7 @@ class OrganizationModelView(CreateRetrieveUpdateModelView):
         "full_name": org_name_formatter
     }
 
-    column_formatters_export = dict(
-        is_gov=lambda v, c, m, p: '+' if m.is_gov is True else '-',
-        is_military=lambda v, c, m, p: '+' if m.is_military is True else '-',
-        is_active=lambda v, c, m, p: '+' if m.is_active is True else '-')
+    column_formatters_export = dict()
 
     column_labels = dictionary.organization_fields_labels
     column_searchable_list = ['db_name', 'short_name', 'inn', 'kpp']

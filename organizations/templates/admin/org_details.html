@@ -1,13 +1,14 @@
 {% extends 'admin/model/details.html' %}
 
 {% macro fill_data_or_none(name, sep='—') -%}
-<td class="align-middle">
-  {% if name %}{{ name }}{% else %}{{ sep }}{% endif %}
-</td>
+{% if name %}{{ name }}{% else %}{{ sep }}{% endif %}
+{%- endmacro %}
+
+{% macro strftime_if_exists(field, format='%d.%m.%Y', sep='—') -%}
+{% if field %}{{ field.strftime(format) }}{% else %}{{ sep }}{% endif %}
 {%- endmacro %}
 
 {% block body %}
-<style>caption { caption-side: top; }</style>
 <div class="h1 text-center">{{ model.full_name }}</div>
 {% block details_table %}
 {% if admin_view.get_details_grouped %}
@@ -53,12 +54,9 @@
   {% for doc in model.org_adm_doc %}
   <tr>
     <td class="align-middle">{{ doc.org_doc.name }}</td>
-    <td class="align-middle">{% if doc.date_approved %}
-      {{ doc.date_approved.strftime("%d-%m-%Y") }}
-      {% endif %}
-    </td>
-    {{ fill_data_or_none(doc.props) }}
-    {{ fill_data_or_none(doc.comment) }}
+    <td class="align-middle">{{ strftime_if_exists(doc.date_approved) }}</td>
+    <td class="align-middle">{{ fill_data_or_none(doc.props) }}</td>
+    <td class="align-middle">{{ fill_data_or_none(doc.comment) }}</td>
     <td class="align-middle">
       <a href="{{ url_for('organizations.return_org_document',
                             doc_id=doc.orgadm_id,
@@ -87,28 +85,17 @@
   {% for message in model.messages %}
   <tr>
     {% if not message.is_inbox %}
-      <td class="align-middle">Исх</td>
-      <td class="align-middle">{{ message.date_approved.strftime("%d-%m-%Y") }}</td>
-      <td class="align-middle">{{ message.our_outbox_number }}</td>
-      <td class="align-middle">—</td>
-      <td class="align-middle">—</td>
+    <td class="align-middle">Исх</td>
+    <td class="align-middle">{{ strftime_if_exists(message.date_approved) }}</td>
+    <td class="align-middle">{{ message.our_outbox_number }}</td>
+    <td class="align-middle">—</td>
+    <td class="align-middle">—</td>
     {% else %}
-      <td class="align-middle">Вх</td>
-      <td class="align-middle">
-        {% if message.date_inbox_approved %}
-          {{ message.date_inbox_approved.strftime("%d-%m-%Y") }}
-        {% else %}
-          —
-        {% endif %}
-      </td>
-      <td class="align-middle">{{ message.number_inbox_approved }}</td>
-      <td class="align-middle">{{ message.our_inbox_number }}</td>
-      <td class="align-middle">
-        {% if message.date_registered %}
-          {{ message.date_registered.strftime("%d-%m-%Y") }}</td>
-        {% else %}
-          —
-        {% endif %}
+    <td class="align-middle">Вх</td>
+    <td class="align-middle">{{ strftime_if_exists(message.date_inbox_approved) }}</td>
+    <td class="align-middle">{{ message.number_inbox_approved }}</td>
+    <td class="align-middle">{{ message.our_inbox_number }}</td>
+    <td class="align-middle">{{ strftime_if_exists(message.date_registered) }}</td>
     {% endif %}
     <td class="align-middle">
       <a href="{{ url_for('messages.details_view',
@@ -140,9 +127,9 @@
         {{ resource.name }}
       </a>
     </td>
-    {{ fill_data_or_none(resource.fstec_reg_number) }}
-    {{ fill_data_or_none(resource.category) }}
-    {{ fill_data_or_none(resource.regions|join(", ") ) }}
+    <td class="align-middle">{{ fill_data_or_none(resource.fstec_reg_number) }}</td>
+    <td class="align-middle">{{ fill_data_or_none(resource.category) }}</td>
+    <td class="align-middle">{{ fill_data_or_none(resource.regions|join(", ") ) }}</td>
   </tr>
   {% endfor %}
 </table>

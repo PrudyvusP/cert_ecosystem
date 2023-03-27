@@ -1,13 +1,13 @@
-from flask import Markup, flash
+from flask import flash, Markup
 from flask_admin.contrib.sqla.ajax import QueryAjaxModelLoader
 from flask_admin.form.rules import FieldSet
 from wtforms.validators import Length, InputRequired
 
 from .markup_formatters import (org_list_formatter,
                                 parent_single_formatter,
-                                children_list_formatter, methodical_docs_formatter)
-from .master import (CreateRetrieveUpdateModelView,
-                     MESSAGE_DEFAULT_FORMATTERS)
+                                children_list_formatter,
+                                methodical_docs_formatter)
+from .master import BaseModelView
 from .system_messages_for_user import (MESSAGE_NO_ORG_CHOSEN_TEXT,
                                        MESSAGE_TYPE_TEXT,
                                        MESSAGE_DATE_REGISTERED_TEXT,
@@ -26,7 +26,7 @@ MESSAGE_VISIBLE_LEN_CONST = 70
 SEARCH_MODEL_TEXT = "Любые реквизиты письма"
 
 
-class MessageModelView(CreateRetrieveUpdateModelView):
+class MessageModelView(BaseModelView):
     """View-класс сообщения."""
 
     def validate_form(self, form) -> bool:
@@ -86,14 +86,18 @@ class MessageModelView(CreateRetrieveUpdateModelView):
         "methodical_docs": methodical_docs_formatter,
     }
     column_formatters_export = {
-        "information": lambda v, c, m, p: m.information
+        "information": lambda v, c, m, p: m.information,
+        "organizations": lambda v, c, m, p:
+        Markup(", ".join([organization.full_name
+                          for organization in m.organizations]))
     }
     column_labels = dictionary.message_fields_labels
     column_labels['organizations.db_name'] = 'Название организации'
-    column_list = ['date_approved', 'our_outbox_number',
-                   'organizations', 'information', 'date_inbox_approved',
-                   'number_inbox_approved', 'date_registered',
-                   'our_inbox_number']
+    column_list = ['our_outbox_number', 'date_approved',
+                   'organizations', 'information', 'is_inbox',
+                   'number_inbox_approved', 'date_inbox_approved',
+                   'our_inbox_number', 'date_registered',
+                   ]
 
     column_searchable_list = ['information',
                               'our_outbox_number',
@@ -105,7 +109,6 @@ class MessageModelView(CreateRetrieveUpdateModelView):
 
     column_sortable_list = ['date_inbox_approved',
                             'date_registered', 'date_approved']
-    column_type_formatters = MESSAGE_DEFAULT_FORMATTERS
 
     # RETRIEVE OPTIONS
     column_details_list = ['organizations', 'is_inbox',
@@ -114,7 +117,6 @@ class MessageModelView(CreateRetrieveUpdateModelView):
                            'children', 'our_inbox_number', 'date_approved',
                            'our_outbox_number', 'information',
                            'methodical_docs']
-    column_type_formatters_detail = MESSAGE_DEFAULT_FORMATTERS
 
     # CREATE / UPDATE options
     form_ajax_refs = {

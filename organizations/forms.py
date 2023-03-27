@@ -7,7 +7,7 @@ from wtforms import (widgets, StringField, SelectField, SubmitField,
 from wtforms.validators import (InputRequired, Optional,
                                 ValidationError, Regexp, StopValidation)
 
-from organizations.views.forms_placeholders import message_fields_descriptions as mfd
+from .views.forms_placeholders import message_fields_descriptions as mfd
 
 MESSAGE_DATE_TODAY_TEXT = "Дата подписи должна быть не позднее сегодня"
 ORG_INN_NOT_CORRECT_TEXT = "Введите корректный ИНН"
@@ -137,8 +137,7 @@ class AddSubjectDocumentForm(BaseMessageForm, BaseFormWithSubmit):
                                 validators=[CustomInputRequired()])
     date_approved = DateField("Дата подписи документа",
                               validators=[CustomInputRequired(),
-                                          validate_future_date],
-                              format="%Y-%m-%d")
+                                          validate_future_date])
     props = StringField("Подписной номер документа",
                         validators=[Optional()],
                         render_kw={

@@ -10,7 +10,7 @@ from wtforms.validators import InputRequired, ValidationError
 
 from .forms_placeholders import methoddoc_fields_labels
 from .markup_formatters import method_doc_formatter
-from .master import CreateRetrieveUpdateModelView
+from .master import BaseModelView
 from .system_messages_for_user import (METHOD_DOC_BASE_FILE_FORMAT_TEXT,
                                        METHODICAL_DOC_FILE_ERROR_MESSAGE)
 from ..extentions import db
@@ -18,7 +18,7 @@ from ..models import MethodicalDoc
 from ..utils import create_prefix
 
 
-class MethodDocModelView(CreateRetrieveUpdateModelView):
+class MethodDocModelView(BaseModelView):
     """View-класс методического документа."""
 
     can_view_details = False

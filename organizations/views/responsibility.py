@@ -1,5 +1,5 @@
-from .master import CreateRetrieveUpdateModelView
+from .master import BaseModelView
 
 
-class ResponsibilityModelView(CreateRetrieveUpdateModelView):
+class ResponsibilityModelView(BaseModelView):
     pass

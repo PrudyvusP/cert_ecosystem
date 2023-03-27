@@ -6,18 +6,20 @@ from flask_admin.model import typefmt
 SYMB_CONST = "—"
 DEFAULT_PAGE_SIZE_CONST = 20
 
-DATE_DEFAULT_FORMATTERS = dict(typefmt.BASE_FORMATTERS)
-DATE_DEFAULT_FORMATTERS.update({
-    date: lambda f, x: x.strftime("%d-%m-%Y"),
+DATE_NONE_DEFAULT_FORMATTERS = dict(typefmt.BASE_FORMATTERS)
+DATE_NONE_DEFAULT_FORMATTERS.update({
+    date: lambda view, value: value.strftime("%d.%m.%Y"),
+    type(None): lambda view, value: SYMB_CONST if value is None else ""
 })
 
-MESSAGE_DEFAULT_FORMATTERS = DATE_DEFAULT_FORMATTERS.copy()
-MESSAGE_DEFAULT_FORMATTERS.update({
-    type(None): lambda view, value: SYMB_CONST if value is None else "",
+EXPORT_BOOL_DATE_DEFAULT_FORMATTERS = dict(typefmt.BASE_FORMATTERS)
+EXPORT_BOOL_DATE_DEFAULT_FORMATTERS.update({
+    bool: lambda view, value: '+' if value is True else '-',
+    date: lambda view, value: value.strftime("%d.%m.%Y")
 })
 
 
-class CreateRetrieveUpdateModelView(ModelView):
+class BaseModelView(ModelView):
     """Базовый view-класс."""
 
     def __init__(self, model, session,
@@ -34,10 +36,11 @@ class CreateRetrieveUpdateModelView(ModelView):
         """Получает динамические фильтры."""
         _dynamic_filters = getattr(self, 'dynamic_filters', None)
         if _dynamic_filters:
-            return (super(CreateRetrieveUpdateModelView,
+            return (
+                    super(BaseModelView,
                           self).get_filters() or []
-                    ) + _dynamic_filters
-        return super(CreateRetrieveUpdateModelView, self).get_filters()
+            ) + _dynamic_filters
+        return super(BaseModelView, self).get_filters()
 
     # crud
     can_create = True
@@ -47,7 +50,7 @@ class CreateRetrieveUpdateModelView(ModelView):
 
     # export
     can_export = True
-    export_types = ['csv', 'json', 'yaml']
+    export_types = ['csv', 'json']
 
     # pagination
     can_set_page_size = True
@@ -58,5 +61,6 @@ class CreateRetrieveUpdateModelView(ModelView):
     edit_modal = False
 
     # default formatters
-    column_type_formatters = DATE_DEFAULT_FORMATTERS
-    column_type_formatters_detail = DATE_DEFAULT_FORMATTERS
+    column_type_formatters = DATE_NONE_DEFAULT_FORMATTERS
+    column_type_formatters_detail = DATE_NONE_DEFAULT_FORMATTERS
+    column_type_formatters_export = EXPORT_BOOL_DATE_DEFAULT_FORMATTERS
