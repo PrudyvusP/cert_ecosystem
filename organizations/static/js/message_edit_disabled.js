@@ -7,7 +7,7 @@
     var number_inbox_approved = document.getElementById("number_inbox_approved");
     var date_inbox_approved = document.getElementById("date_inbox_approved");
 
-    is_inbox.disabled = true;
+    is_inbox.style="display:none";
 
     if (is_inbox.checked == true) {
         date_approved.disabled = true;
