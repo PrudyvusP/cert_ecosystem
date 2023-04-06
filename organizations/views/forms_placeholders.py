@@ -10,7 +10,7 @@ MESSAGE_INFORMATION_ROWS_CONST = 10
 MESSAGE_OUT_TEXT = 'ЛПУ-16'
 MESSAGE_OUT_OUR_TEXT = '161-10-11/22'
 
-ORG_ADDRESS_TEXT = "125212, г. Москва, Ленинградское шоссе, д. 23А"
+ORG_ADDRESS_TEXT = "Ленинградское шоссе, д. 23А, г. Москва, 125212"
 ORG_AGRMNT_UNIT_TEXT = "Департамент физического развития"
 ORG_BOSS_FIO_TEXT = "Ромашкин Игорь Евгеньевич"
 ORG_BOSS_POS_TEXT = "Генеральный директор"

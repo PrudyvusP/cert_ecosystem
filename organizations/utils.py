@@ -41,7 +41,7 @@ def get_alpha_num_string(strq: str) -> str:
 
 def get_string_wo_special_symbols(strq: str) -> str:
     """Возврощает строку без специальных символов."""
-    pattern = r'[?",.<>|:\/]'
+    pattern = r'[?",.<>-«»|:\/]'
     return re.sub(pattern, '', strq)
 
 
