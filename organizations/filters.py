@@ -50,10 +50,14 @@ class OrgOkrugFilter(filters.FilterInList):
     расположенных в округах, id которых переданы."""
 
     def apply(self, query, value, alias=None):
-        return (query
-                .join(Region, Organization.region_id == Region.region_id)
-                .filter(Region.okrug_id.in_(value))
-                )
+        org_ids = (
+            db.session
+            .query(Organization.org_id.distinct())
+            .join(Region, Organization.region_id == Region.region_id)
+            .filter(Region.okrug_id.in_(value))
+        )
+
+        return query.filter(Organization.org_id.in_(org_ids))
 
 
 class OrgOkrugNotFilter(filters.FilterNotInList):
@@ -61,10 +65,14 @@ class OrgOkrugNotFilter(filters.FilterNotInList):
     расположенных не в округах, id которых переданы."""
 
     def apply(self, query, value, alias=None):
-        return (query
-                .join(Region, Organization.region_id == Region.region_id)
-                .filter(~Region.okrug_id.in_(value))
-                )
+        org_ids = (
+            db.session
+            .query(Organization.org_id.distinct())
+            .join(Region, Organization.region_id == Region.region_id)
+            .filter(~Region.okrug_id.in_(value))
+        )
+
+        return query.filter(Organization.org_id.in_(org_ids))
 
     def operation(self):
         return lazy_gettext('не в списке')
