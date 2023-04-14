@@ -1,12 +1,18 @@
+import os
 import re
+import smtplib
 import uuid
+from email.mime.application import MIMEApplication
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+from pathlib import Path
 from typing import List, Tuple
 
 from fpdf import FPDF
 from pytils import translit
 from sqlalchemy import func
 
-from .exceptions import ModelAttributeError
+from .exceptions import ModelAttributeError, SMTPAuthError
 
 
 def create_pdf(destination: str) -> None:
@@ -87,3 +93,36 @@ def cast_string_to_non_breaking_space(strq: str,
                                       phrase: str) -> str:
     "Возвращает строку с неразрывными пробелами вместо обычных."
     return re.sub(phrase, "\xa0".join(phrase.split()), strq)
+
+
+def send_mail(user: str,
+              password: str,
+              send_to: list,
+              subject: str,
+              text: str,
+              host: str,
+              port: int,
+              filename=None) -> None:
+    """Отправляет электронное письмо в соответствии
+    с полученными параметрами."""
+    message = MIMEMultipart()
+    message['From'] = user
+    message['To'] = ', '.join(send_to)
+    message['Subject'] = subject
+    message.attach(MIMEText(text))
+    if filename:
+        suffix = Path(filename.filename).suffix
+        base_file_name = os.path.basename(filename)
+        with open(filename, 'rb') as f:
+            attach = MIMEApplication(f.read(), _subtype=suffix)
+            attach.add_header(
+                'Content-Disposition',
+                f'attachment; filename={base_file_name}'
+            )
+        message.attach(attach)
+    with smtplib.SMTP(host, port) as server:
+        try:
+            server.login(user, password)
+        except Exception:
+            raise SMTPAuthError('')
+        server.sendmail(user, send_to, message.as_string())

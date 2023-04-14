@@ -20,3 +20,6 @@ class EgrulApiWrongFormatError(Exception):
 
 class MethodicalDocWrongFileNameError(Exception):
     pass
+
+class SMTPAuthError(Exception):
+    pass
