@@ -1,6 +1,7 @@
 """Тестовые данные для демонстрации возможностей приложения."""
 
 import datetime
+import io
 
 org_data = [
     {
@@ -102,7 +103,7 @@ org_data = [
     },
     {
         "full_name": 'ГРУППА КОМПАНИЙ "НИ ДАТЬ НИ ВЗЯТЬ"',
-        "short_name": 'ГК "НДНВ',
+        "short_name": 'ГК "НДНВ"',
         "is_gov": True,
         "is_military": False,
         "ogrn": "7319811095635",
@@ -194,22 +195,36 @@ resource_data = [
 
 methodics_data = [
     {
-        "name": "Методические рекомендации по поеданию чипсов",
+        "name": ("Методические рекомендации по поеданию тонких"
+                 " ломтиков картофеля"),
+        "short_name": "Методические рекомендации по поеданию чипсов",
         "path_prefix": "mr_crisps",
         "is_conf": True,
         "is_active": True,
+        "name_for_letter": "Методические рекомендации по поеданию чипсов",
+        "data_extension": '.txt',
+        "data": io.BytesIO(b"Open chips and eat them")
+
     },
     {
-        "name": "Регламент антивзаимодействия",
+        "name": "Регламент антивзаимодействия подразделений земли и воды",
+        "short_name":"Регламент антивзаимодейсвтия",
         "path_prefix": "regl_anti",
         "is_conf": False,
         "is_active": True,
+        "name_for_letter": "Регламент антивзаимодейсвтия",
+        "data_extension": '.txt',
+        "data": io.BytesIO(b"We need more interaction")
     },
     {
-        "name": "План создания планов создания",
+        "name": "План создания планов создания в Российской Федерации",
+        "short_name":"План создания планов",
         "path_prefix": "plan_planov",
         "is_conf": True,
         "is_active": True,
+        "name_for_letter": "План создания планов",
+        "data_extension": '.txt',
+        "data": io.BytesIO(b"We need more plans of plans")
     }
 ]
 
@@ -269,17 +284,20 @@ messages_data = [
     {
         "date_approved": datetime.datetime(2022, 4, 25),
         "our_outbox_number": '11',
-        "information": 'Направлен чек за покупку 10 кг огурцов'
+        "information": 'Направлен чек за покупку 10 кг огурцов',
+        "is_inbox": False
     },
     {
         "date_approved": datetime.datetime(2022, 2, 1),
         "our_outbox_number": '1',
-        "information": f'Текст сообщения: {"тест " * 35}'
+        "information": f'Текст сообщения: {"тест " * 35}',
+        "is_inbox": False
     },
     {
         "date_approved": datetime.datetime(2022, 5, 1),
         "our_outbox_number": '17',
         "information": ('Я мог бы выпить море, я мог бы стать другим '
-                        'вечно молодым, вечно пьяным')
+                        'вечно молодым, вечно пьяным'),
+        "is_inbox": False
     },
 ]

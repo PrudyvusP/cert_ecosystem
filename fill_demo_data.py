@@ -76,16 +76,22 @@ def fill_demo_data() -> None:
     for method_doc in methodics_data:
         new_method_doc = MethodicalDoc(
             name=method_doc["name"],
+            short_name=method_doc["short_name"],
+            name_for_letter=method_doc["name_for_letter"],
             path_prefix=method_doc["path_prefix"],
             is_conf=method_doc["is_conf"],
-            is_active=method_doc["is_active"]
+            is_active=method_doc["is_active"],
+            data_extension=method_doc["data_extension"],
+            data=method_doc.get("data").read()
+
         )
         db.session.add(new_method_doc)
         lst_with_methods.append(new_method_doc)
 
     message = Message(date_approved=datetime.datetime(2022, 1, 1),
                       our_outbox_number='1936',
-                      information="Направлены рекомендации")
+                      information="О направлении методических документов",
+                      is_inbox=False)
 
     db.session.add(message)
 
@@ -104,7 +110,8 @@ def fill_demo_data() -> None:
             our_inbox_number=message.get("our_inbox_number"),
             date_approved=message.get("date_approved"),
             our_outbox_number=message.get("our_outbox_number"),
-            information=message.get("information")
+            information=message.get("information"),
+            is_inbox=message.get("is_inbox", True)
         )
         db.session.add(new_message)
         new_message.organizations.append(receiver_sender)
