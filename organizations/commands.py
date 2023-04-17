@@ -3,6 +3,7 @@ import click
 from flask.cli import with_appcontext
 
 from .pindex_to_db import find_db_indexes, fill_db_with_addresses_delta
+from .send_email_msg_report import send_notify_email
 
 CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 
@@ -41,3 +42,13 @@ def update(ctx):
     file_name = ctx.obj.get('FILE_NAME')
     fill_db_with_addresses_delta(file_name)
     click.echo("Успех")
+
+
+@click.command()
+@click.pass_context
+@with_appcontext
+def notify(ctx):
+    """Отправляет e-mail начальнику, содержащие
+    письма с методическими документами,
+    реквизиты которых не внесены в сервис."""
+    send_notify_email()

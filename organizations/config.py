@@ -35,6 +35,11 @@ class Config:
                                    '/tmp/')
     DOCX_TEMPLATE_PATH = environ.get('DOCX_TEMPLATE_PATH')
 
+    SMTP_PORT = environ.get('SMTP_PORT', 25)
+    SMTP_HOST = environ.get('SMTP_HOST', 'localhost')
+    SMTP_USER = environ.get('SMTP_USER')
+    SMTP_PASSWORD = environ.get('SMTP_PASSWORD')
+    BOSS_EMAIL_FOR_NOTIFY = environ.get('BOSS_EMAIL_FOR_NOTIFY').split()
 
 class ProdConfig(Config):
     """Настройки для продакшена."""

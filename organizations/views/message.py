@@ -101,7 +101,9 @@ class MessageModelView(BaseModelView):
 
     column_searchable_list = ['information',
                               'our_outbox_number',
-                              'number_inbox_approved']
+                              'number_inbox_approved',
+                              'organizations.db_name',
+                              'organizations.short_name']
 
     def search_placeholder(self):
         """Переопределяет текст, отображаемый в Поиске по модели письма."""
