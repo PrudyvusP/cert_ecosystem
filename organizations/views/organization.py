@@ -66,9 +66,16 @@ class OrganizationModelView(BaseModelView):
 
     def on_model_change(self, form, model, is_created) -> None:
         """Переопределяет поведение создания и изменения организации.
-        Создает строку для поиска из полного наименования организации."""
+        Создает строку, используемую для поиска из полного наименования организации.
+        Заменяет значения '' у полей типа db.Text на None."""
         if model.full_name:
+            model.full_name = model.full_name.upper()
+            model.short_name = model.short_name.upper()
             model.db_name = get_alpha_num_string(model.full_name)
+
+        model.contacts = form.contacts.data or None
+        model.factual_address = form.contacts.data or None
+        model.agreement_unit = form.agreement_unit.data or None
 
     def get_details_grouped(self) -> dict:
         """Создает сгруппированный словарь данных для
