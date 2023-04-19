@@ -30,7 +30,7 @@ def check_response(response: dict) -> list:
     """Возвращает список организаций."""
     if not isinstance(response, dict):
         raise TypeError("Должен быть словарь!")
-    key_words = ["count", "next", "previous", "results"]
+    key_words = ["count", "next", "previous", "results", "date_info"]
     for key_word in key_words:
         if key_word not in response:
             app.logger.error(
@@ -88,6 +88,8 @@ class WorkspaceView(BaseView):
             count = response['count']
             prev_page = response['previous']
             next_page = response['next']
+            date_info = response['date_info']
+            actual_date = date_info['actual_date'][:10]
 
             # TODO Обращаться для каждого объекта в базу - плохо!
 
@@ -109,7 +111,8 @@ class WorkspaceView(BaseView):
                                found_organizations=found_organizations,
                                search_keyword=search_keyword,
                                prev_page=prev_page,
-                               next_page=next_page)
+                               next_page=next_page,
+                               actual_date=actual_date)
         return self.render('admin/egrul_search_results.html',
                            count=count,
                            found_organizations=found_organizations,

@@ -1,6 +1,7 @@
 {% extends 'admin/master.html' %}
 
 {% block body %}
+<p class="mt-2 text-right h4"> ЕГРЮЛ актуален по состоянию на {{ actual_date }}.</p>
 <p class="mt-6 h4"> Найдено организаций: {{ count }}</p>
 {% if count %}
   <table class="table table-hover table-sm text-center">
