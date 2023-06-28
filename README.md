@@ -66,6 +66,21 @@ CERT_ecosystem - это сервис учета взаимодействия с 
 
 ### Установка
 
+Установить python3 и другие необходимые пакеты:
+```bash
+apt-get install python3 python3-venv python3-dev
+```
+
+Установить git:
+```bash
+apt-get install git
+```
+
+Установить PostgreSQL:
+```bash
+apt-get install postgresql
+```
+
 Клонировать проект:
 
 ```bash
@@ -83,6 +98,7 @@ python3 -m venv venv && source venv/bin/activate
 ```bash
 pip3 install -r requirements.txt
 ```
+В случае локального развертывания зеркала pypi.org использовать флажок `--trusted-host=<url>`.
 
 ### Режимы работы
 
@@ -98,7 +114,7 @@ pip3 install -r requirements.txt
 sudo -iu postgres psql
 ```
 
-Cоздать базу данных, создать пользователя и дать ему права:
+Создать базу данных, создать пользователя и дать ему права:
 
 ```psql
 CREATE DATABASE <db_name>;
@@ -159,24 +175,7 @@ e-mail сообщения о таких письмах. Для использо�
 **POSTGRES_PASSWORD**=<пароль, который использует пользователь для подключения>
 
 #### Пример файла, содержащего переменные окружения
-
-```bash
-SECRET_KEY=indonesia_Xena
-FLASK_ENV=production
-DB_NAME=cert_db
-DB_HOST=127.0.0.1
-DB_PORT=5432
-POSTGRES_USER=cert_db_user
-POSTGRES_PASSWORD=1q2w3e4r
-EGRUL_SERVICE_URL=http://localhost:28961
-METHOD_DOCS_PATH=/home/samba/method_docs/
-DOCX_TEMPLATE_PATH=/home/debian/doc.docx
-SMTP_HOST=mail.local
-SMTP_PORT=25
-SMTP_USER=user@mail.local
-SMTP_PASSWORD=4r3e2w1q
-BOSS_EMAIL_FOR_NOTIFY="boss@mail.local hugoboss@mail.local"
-```
+Пример заполнения файла `.env` - [тут](https://github.com/PrudyvusP/cert_ecosystem/blob/main/.env.example) 
 
 ### Настройка
 

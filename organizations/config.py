@@ -39,7 +39,7 @@ class Config:
     SMTP_HOST = environ.get('SMTP_HOST', 'localhost')
     SMTP_USER = environ.get('SMTP_USER')
     SMTP_PASSWORD = environ.get('SMTP_PASSWORD')
-    BOSS_EMAIL_FOR_NOTIFY = environ.get('BOSS_EMAIL_FOR_NOTIFY').split()
+    BOSS_EMAIL_FOR_NOTIFY = environ.get('BOSS_EMAIL_FOR_NOTIFY').split(',')
 
 class ProdConfig(Config):
     """Настройки для продакшена."""
