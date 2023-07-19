@@ -74,7 +74,7 @@ class OrganizationModelView(BaseModelView):
             model.db_name = get_alpha_num_string(model.full_name)
 
         model.contacts = form.contacts.data or None
-        model.factual_address = form.contacts.data or None
+        model.factual_address = form.factual_address.data or None
         model.agreement_unit = form.agreement_unit.data or None
 
     def get_details_grouped(self) -> dict:
