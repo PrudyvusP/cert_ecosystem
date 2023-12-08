@@ -52,7 +52,7 @@ SEARCH_MODEL_TEXT = "Название, ИНН, КПП"
 
 # Настраиваемые константы для осуществления действий
 LETTER_DATE_FORMAT = "%d.%m.%Y"
-METHOD_DOC_ARCHIVE_NAME = "методические документы.7z"
+METHOD_DOC_ARCHIVE_NAME = "методические документы.zip"
 METHOD_DOC_CONF_TEXT = 'Конфиденциально'
 METHOD_DOC_DOCX_FILE_NAME = '.docx'
 METHOD_DOC_INPUT_MESSAGE_REQUEST_TEXT = 'Запрос методических документов'
