@@ -267,7 +267,8 @@ resource_fields_placeholders = dict(
 )
 
 orgadmdoc_fields_labels = dict(
-    name="Название вида документа"
+    name="Название вида документа",
+    is_main="Является ли документ основным?"
 )
 
 orgadmdoc_fields_descriptions = dict(
