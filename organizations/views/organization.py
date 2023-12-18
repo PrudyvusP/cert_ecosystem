@@ -27,7 +27,8 @@ from .system_messages_for_user import (METHOD_DOC_DIR_NOT_CREATED_TEXT,
 from ..extentions import db
 from ..filters import (OrgRegionFilter,
                        OrgHasAgreementFilter, OrgOkrugFilter,
-                       OrgDocumentsAndFilter, OrgRegionNotFilter, OrgOkrugNotFilter)
+                       OrgDocumentsAndFilter, OrgRegionNotFilter,
+                       OrgOkrugNotFilter)
 from ..forms import (AddSubjectDocumentForm, validate_future_date,
                      validate_inn, validate_ogrn, validate_kpp,
                      SendMethodDocsToOrgForm, sender_choices)
@@ -44,7 +45,6 @@ from ..views import forms_placeholders as dictionary
 FILENAME_CONST = 20
 ORGADM_DOC_NAME_CONST = 80
 PDF_MIMETYPE_CONST = "application/pdf"
-ORGADM_DOC_IS_MAIN_CHOICE = "yes"
 LETTER_PHRASE_WITH_NON_BREAKABLE_SPACE = 'Российской Федерации'
 
 # Константы для моделей
@@ -277,7 +277,7 @@ class OrganizationModelView(BaseModelView):
                 )
                 db.session.add(new_org_doc)
 
-            if request.form.get('document-type') == ORGADM_DOC_IS_MAIN_CHOICE:
+            if document.is_main:
                 org.date_agreement = date_approved
                 db.session.add(org)
 
@@ -295,6 +295,9 @@ class OrganizationModelView(BaseModelView):
                     "organizations.org_documents_view",
                     org_id=org.org_id)
                 )
+            print(dir_name, type(dir_name), type(create_dot_pdf(document.name_prefix)))
+
+
             filename = os.path.join(dir_name,
                                     create_dot_pdf(document.name_prefix)
                                     )

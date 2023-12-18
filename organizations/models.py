@@ -460,6 +460,8 @@ class OrgAdmDoc(DateAddedCreatedMixin, db.Model):
                                    back_populates="org_doc",
                                    passive_deletes=True)
 
+    is_main = db.Column(db.Boolean, default=False)
+
     def __repr__(self):
         return self.name[:80]
 
