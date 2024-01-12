@@ -1,76 +1,79 @@
 {% extends 'admin/master.html' %}
 
 {% block body %}
-<p class="mt-2 text-right h4"> ЕГРЮЛ актуален по состоянию на {{ actual_date }}.</p>
+<p class="mt-2 text-right h4">
+  ЕГРЮЛ актуален по состоянию на {{ actual_date }}.</p>
 <p class="mt-6 h4"> Найдено организаций: {{ count }}</p>
 {% if count %}
-  <table class="table table-hover table-sm text-center">
-    <thead>
-    <tr>
-      <th class="align-middle">№</th>
-      <th class="align-middle">Полное название организации</th>
-      <th class="align-middle">Сокращенное название организации</th>
-      <th class="align-middle">ИНН</th>
-      <th class="align-middle">КПП</th>
-      <th class="align-middle">В рабочем пространстве?</th>
-    </tr>
-    </thead>
-    {% for found_organization in found_organizations %}
-      <tr>
-      <td class="align-middle">{{ loop.index }}.</td>
-      <td class="align-middle">
-          {{ found_organization['full_name'] }}
-      </td>
-      <td class="align-middle">
-        {% if found_organization['short_name'] %}
-          {{ found_organization['short_name'] }}
-        {% else %}
-          отсутствует
-        {% endif %}
-        </td>
-      <td class="align-middle">{{ found_organization['inn'] }}</td>
-      <td class="align-middle">{{ found_organization['kpp'] }}</td>
-      <td class="align-middle">
-        {% if not found_organization['is_workspace'] %}
-          <form action="{{ url_for('workspace.add_to_workspace') }}" method="post">
-            <input type="hidden" name="org_url" value="{{ found_organization['url'] }}">
-            <button class="btn btn-outline-dark my-2 my-sm-0"
-                    type="submit">Добавить!
-            </button>
-          </form>
-        {% else %}
-        <a href="{{ url_for('organizations.details_view', id=found_organization['org_id']) }}">
-          Уже добавлена!
-        </a>
-        {% endif %}
-      </td>
-      </tr>
-    {% endfor %}
-  </table>
+<table class="table table-hover table-sm text-center">
+  <thead>
+  <tr>
+    <th class="align-middle">№</th>
+    <th class="align-middle">Полное название организации</th>
+    <th class="align-middle">Сокращенное название организации</th>
+    <th class="align-middle">ИНН</th>
+    <th class="align-middle">КПП</th>
+    <th class="align-middle">В рабочем пространстве?</th>
+  </tr>
+  </thead>
+  {% for found_organization in found_organizations %}
+  <tr>
+    <td class="align-middle">{{ loop.index }}.</td>
+    <td class="align-middle">
+      {{ found_organization['full_name'] }}
+    </td>
+    <td class="align-middle">
+      {% if found_organization['short_name'] %}
+      {{ found_organization['short_name'] }}
+      {% else %}
+      отсутствует
+      {% endif %}
+    </td>
+    <td class="align-middle">{{ found_organization['inn'] }}</td>
+    <td class="align-middle">{{ found_organization['kpp'] }}</td>
+    <td class="align-middle">
+      {% if not found_organization['is_workspace'] %}
+      <form action="{{ url_for('workspace.add_to_workspace') }}" method="post">
+        <input type="hidden" name="org_url"
+               value="{{ found_organization['relative_addr'] }}">
+        <button class="btn btn-outline-dark my-2 my-sm-0"
+                type="submit">Добавить!
+        </button>
+      </form>
+      {% else %}
+      <a href="{{ url_for('organizations.details_view',
+       id=found_organization['org_id']) }}">
+        Уже добавлена!
+      </a>
+      {% endif %}
+    </td>
+  </tr>
+  {% endfor %}
+</table>
 
-  <nav>
-    <ul class="pagination justify-content-end">
-      <li class="page-item">
-        <form action="{{ url_for('workspace.egrul_search') }}" method="post">
-          {% if prev_page %}
-            <button type="submit"
-                    name="prev_page"
-                    value="{{ prev_page }}"
-                    class="btn btn-outline-dark my-2 my-sm-0">
-              <=
-            </button>
-          {% endif %}
-          {% if next_page %}
-            <button type="submit"
-                    name="next_page"
-                    value="{{ next_page }}"
-                    class="btn btn-outline-dark my-2 my-sm-0">
-              =>
-            </button>
-          {% endif %}
-          <input type="hidden" name="search_keyword" value="{{ search_keyword }}">
-        </form>
-    </ul>
-  </nav>
+<nav>
+  <ul class="pagination justify-content-end">
+    <li class="page-item">
+      <form action="{{ url_for('workspace.egrul_search') }}" method="post">
+        {% if prev_page %}
+        <button type="submit"
+                name="prev_page"
+                value="{{ prev_page }}"
+                class="btn btn-outline-dark my-2 my-sm-0">
+          <=
+        </button>
+        {% endif %}
+        {% if next_page %}
+        <button type="submit"
+                name="next_page"
+                value="{{ next_page }}"
+                class="btn btn-outline-dark my-2 my-sm-0">
+          =>
+        </button>
+        {% endif %}
+        <input type="hidden" name="search_keyword" value="{{ search_keyword }}">
+      </form>
+  </ul>
+</nav>
 {% endif %}
 {% endblock %}

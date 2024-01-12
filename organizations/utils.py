@@ -126,3 +126,8 @@ def send_mail(user: str,
         except Exception:
             raise SMTPAuthError('')
         server.sendmail(user, send_to, message.as_string())
+
+
+def guess_search_term(term: str) -> dict:
+    if not term.isdigit:
+        return {}

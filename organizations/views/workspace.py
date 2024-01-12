@@ -1,4 +1,5 @@
 import json
+import re
 
 import requests
 from flask import current_app as app, flash, redirect, request, url_for
@@ -8,6 +9,7 @@ from requests.exceptions import InvalidJSONError
 from ..exceptions import EgrulApiWrongFormatError
 from ..extentions import db
 from ..models import Organization, Region
+from ..utils import guess_search_term
 
 
 def get_api_url(url_to_go: str) -> str:
@@ -61,6 +63,8 @@ class WorkspaceView(BaseView):
                or get_api_url('api/organizations/')
                )
 
+        #params = guess_search_term()
+
         if search_keyword.isdigit():
             params = {"search": search_keyword}
         else:
@@ -77,7 +81,6 @@ class WorkspaceView(BaseView):
                          ' администратор уже оповещен и скоро починит!')
             )
             return redirect(prev_url)
-
         response = convert_from_json_to_dict(_request)
 
         count = 0
@@ -89,14 +92,14 @@ class WorkspaceView(BaseView):
             prev_page = response['previous']
             next_page = response['next']
             date_info = response['date_info']
-            actual_date = date_info['actual_date'][:10]
 
             # TODO Обращаться для каждого объекта в базу - плохо!
 
             for found_organization in found_organizations:
                 exists = (
                     db.session.query(Organization)
-                    .filter(Organization.full_name == found_organization['full_name'])
+                    .filter(Organization.full_name == found_organization[
+                        'full_name'])
                     .filter(Organization.kpp == found_organization['kpp'])
                     .filter(Organization.inn == found_organization['inn'])
                 ).first()
@@ -106,13 +109,15 @@ class WorkspaceView(BaseView):
                 else:
                     found_organization['is_workspace'] = False
                     found_organization['org_id'] = None
+
             return self.render('admin/egrul_search_results.html',
                                count=count,
                                found_organizations=found_organizations,
                                search_keyword=search_keyword,
                                prev_page=prev_page,
                                next_page=next_page,
-                               actual_date=actual_date)
+                               actual_date=date_info)
+
         return self.render('admin/egrul_search_results.html',
                            count=count,
                            found_organizations=found_organizations,
