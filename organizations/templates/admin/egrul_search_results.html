@@ -1,8 +1,11 @@
 {% extends 'admin/master.html' %}
 
 {% block body %}
+
+{% if actual_date %}
 <p class="mt-2 text-right h4">
   ЕГРЮЛ актуален по состоянию на {{ actual_date }}.</p>
+{% endif %}
 <p class="mt-6 h4"> Найдено организаций: {{ count }}</p>
 {% if count %}
 <table class="table table-hover table-sm text-center">
