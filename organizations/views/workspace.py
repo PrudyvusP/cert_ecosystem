@@ -1,4 +1,5 @@
 import json
+import re
 
 import requests
 from flask import current_app as app, flash, redirect, request, url_for
@@ -8,12 +9,27 @@ from requests.exceptions import InvalidJSONError
 from ..exceptions import EgrulApiWrongFormatError
 from ..extentions import db
 from ..models import Organization, Region
+from ..utils import INN_PATTERN, KPP_PATTERN, OGRN_PATTERN
 
 
 def get_api_url(url_to_go: str) -> str:
     """Создает относительный путь адреса EGRUL-сервиса."""
     base_api_url = app.config['EGRUL_SERVICE_URL']
     return base_api_url + url_to_go
+
+
+def guess_search_term(term: str) -> dict:
+    """Возвращает параметр фильтрации по типу <term>."""
+    term = term.strip()
+    if not term.isdigit():
+        return {"q": term, "url": "fts-search/"}
+
+    if re.match(INN_PATTERN, term):
+        return {"inn": term}
+    if re.match(OGRN_PATTERN, term):
+        return {"ogrn": term}
+    if re.match(KPP_PATTERN, term):
+        return {"kpp": term}
 
 
 def convert_from_json_to_dict(json_data: requests.models.Response) -> dict:
@@ -48,7 +64,7 @@ def check_response(response: dict) -> list:
 class WorkspaceView(BaseView):
     """View-класс рабочего пространства."""
 
-    def is_visible(self):
+    def is_visible(self) -> bool:
         return False
 
     @expose('/', methods=['POST'])
@@ -61,11 +77,8 @@ class WorkspaceView(BaseView):
                or get_api_url('api/organizations/')
                )
 
-        if search_keyword.isdigit():
-            params = {"search": search_keyword}
-        else:
-            params = {"q": search_keyword}
-            url += 'fts-search/'
+        params = guess_search_term(search_keyword)
+        url += params.pop('url', '')
 
         try:
             _request = requests.get(url, params=params)
@@ -77,7 +90,6 @@ class WorkspaceView(BaseView):
                          ' администратор уже оповещен и скоро починит!')
             )
             return redirect(prev_url)
-
         response = convert_from_json_to_dict(_request)
 
         count = 0
@@ -89,14 +101,12 @@ class WorkspaceView(BaseView):
             prev_page = response['previous']
             next_page = response['next']
             date_info = response['date_info']
-            actual_date = date_info['actual_date'][:10]
-
-            # TODO Обращаться для каждого объекта в базу - плохо!
 
             for found_organization in found_organizations:
                 exists = (
                     db.session.query(Organization)
-                    .filter(Organization.full_name == found_organization['full_name'])
+                    .filter(Organization.full_name == found_organization[
+                        'full_name'])
                     .filter(Organization.kpp == found_organization['kpp'])
                     .filter(Organization.inn == found_organization['inn'])
                 ).first()
@@ -106,13 +116,15 @@ class WorkspaceView(BaseView):
                 else:
                     found_organization['is_workspace'] = False
                     found_organization['org_id'] = None
+
             return self.render('admin/egrul_search_results.html',
                                count=count,
                                found_organizations=found_organizations,
                                search_keyword=search_keyword,
                                prev_page=prev_page,
                                next_page=next_page,
-                               actual_date=actual_date)
+                               actual_date=date_info)
+
         return self.render('admin/egrul_search_results.html',
                            count=count,
                            found_organizations=found_organizations,
@@ -126,17 +138,21 @@ class WorkspaceView(BaseView):
         api_url = get_api_url(request.form['org_url'].lstrip('/'))
         _request = requests.get(api_url)
         response = convert_from_json_to_dict(_request)
-        region = db.session.query(Region).get(int(response.pop('region_code')))
-        response["region"] = region
 
-        if not response.get("short_name"):
-            response["short_name"] = response["full_name"]
+        new_org = Organization(
+            inn=response['inn'],
+            kpp=response['kpp'],
+            ogrn=response['ogrn'],
+            full_name=response['full_name'],
+            short_name=response.get("short_name") or response["full_name"],
+            factual_address=response['factual_address'],
+            region=db.session.query(Region).get(response['region_code'])
+        )
 
-        new_org = Organization(**response)
         try:
             db.session.add(new_org)
             db.session.commit()
-        except Exception:
+        except Exception as e:
             flash("Не удалось перенести организацию в рабочее пространство",
                   category='error')
             app.logger.error('Ошибка при записи в БД')

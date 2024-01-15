@@ -14,6 +14,10 @@ from sqlalchemy import func
 
 from .exceptions import ModelAttributeError, SMTPAuthError
 
+INN_PATTERN = re.compile(r'(?<!\d)\d{10}(?!\d)')
+OGRN_PATTERN = re.compile(r'(?<!\d)\d{13}(?!\d)')
+KPP_PATTERN = re.compile(r'(?<!\d)\d{9}(?!\d)')
+
 
 def create_pdf(destination: str) -> None:
     """Сохраняет pdf-файл как признак
