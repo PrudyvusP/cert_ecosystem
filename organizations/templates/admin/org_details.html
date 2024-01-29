@@ -8,6 +8,10 @@
 {% if field %}{{ field.strftime(format) }}{% else %}{{ sep }}{% endif %}
 {%- endmacro %}
 
+{% macro bool_plus_minus(value) -%}
+{% if value%}+{% else %}-{% endif %}
+{%- endmacro %}
+
 {% block body %}
   <div class="h1 text-center">{{ model.full_name }}</div>
   {% block details_table %}
@@ -55,7 +59,7 @@
     {% for com_contact in model.com_contacts %}
     <tr>
       <td class="align-middle">{{ fill_data_or_none(com_contact.dep) }}</td>
-      <td class="align-middle">{{ com_contact.is_main }}</td>
+      <td class="align-middle">{{ bool_plus_minus(com_contact.is_main) }}</td>
       <td class="align-middle">{{ fill_data_or_none(com_contact.pos) }}</td>
       <td class="align-middle">{{ fill_data_or_none(com_contact.fio) }}</td>
       <td class="align-middle">{{ fill_data_or_none(com_contact.email) }}</td>
