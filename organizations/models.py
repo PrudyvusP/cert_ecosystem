@@ -144,7 +144,7 @@ class Organization(DateAddedCreatedMixin, db.Model):
     com_contacts = db.relationship("Contact",
                                    backref="from_org",
                                    passive_deletes=True,
-                                   order_by="-Contact.is_main")
+                                   order_by="desc(Contact.is_main)")
 
     responsible_unit = db.relationship("Responsibility",
                                        back_populates="organization",
