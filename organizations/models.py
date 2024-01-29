@@ -141,6 +141,11 @@ class Organization(DateAddedCreatedMixin, db.Model):
                                 order_by="Resource.fstec_reg_number,"
                                          "Resource.name")
 
+    com_contacts = db.relationship("Contact",
+                                   backref="from_org",
+                                   passive_deletes=True,
+                                   order_by="-Contact.is_main")
+
     responsible_unit = db.relationship("Responsibility",
                                        back_populates="organization",
                                        cascade="all, delete")
@@ -252,6 +257,29 @@ class Message(db.Model):
                     f' {self.date_inbox_approved})')
         return (f'Исх. № {self.our_outbox_number}'
                 f' от {self.date_approved}')
+
+
+class Contact(DateAddedCreatedMixin, db.Model):
+    """Модель контакта по взаимодействию."""
+    __tablename__ = "contacts"
+
+    contact_id = db.Column(db.Integer, primary_key=True)
+
+    fio = db.Column(db.String(254))
+    dep = db.Column(db.String(254))
+    pos = db.Column(db.String(254))
+    mob_phone = db.Column(db.String(20))
+    work_phone = db.Column(db.String(20))
+    email = db.Column(db.String(254))
+    is_main = db.Column(db.Boolean, default=False)
+
+    org_id = db.Column(db.Integer,
+                       db.ForeignKey("organizations.org_id",
+                                     ondelete="CASCADE"),
+                       nullable=False)
+
+    def __repr__(self):
+        return f'Контакт {self.contact_id} от Организации {self.org_id}'
 
 
 class Resource(DateAddedCreatedMixin, db.Model):

@@ -83,7 +83,7 @@ def get_beautiful_org_formatter(instance: ModelView) -> dict:
                 ('uuid', 'UUID'),
                 ('date_added', instance.column_labels['date_added']),
                 ('date_updated', instance.column_labels['date_updated']),
-            ],
+            ]
     }
     return org_data
 
@@ -157,7 +157,8 @@ organization_fields_labels = dict(
     is_subject_kii='СКИИ',
     date_added='Дата внесения в БД',
     date_updated='Дата обновления сведений об организации в БД',
-    is_active='АКТВ'
+    is_active='АКТВ',
+    com_contacts='Контакт для взаимодействия'
 )
 
 organization_fields_placeholders = dict(
@@ -294,9 +295,27 @@ methoddoc_fields_descriptions = dict(
     date_approved="Дата утверждения методического документа",
     props="Реквизиты методического документа",
     path_prefix="Служебное наименование (для хранения в файловой структуре)",
-    is_conf="Признак конфеднециальности документа",
+    is_conf="Признак конфиденциальности документа",
     is_active="Признак актуальности документа",
     date_added="Дата внесение информации о документе в БД",
     date_updated="Дата актуализации информации о документе в БД",
     name_for_letter='Название, используемое для генерации писем'
 )
+
+contact_fields_labels = dict(
+    fio="Фамилия Имя Отчество",
+    dep="Наименование подразделения",
+    pos="Наименование должности",
+    mob_phone="Номер мобильного телефона",
+    work_phone="Номер городского телефона",
+    email="Адрес электронной почты",
+    is_main="Является ли контакт руководящим?",
+)
+
+contact_fields_placeholders = dict(
+    fio={'placeholder': "Крокодилов Исмаил Рюрикович"},
+    dep={'placeholder': "Департамент поздравлений и подарков"},
+    pos={'placeholder': "Руководитель"},
+    mob_phone={'placeholder': "+7 (903) 111-11-11"},
+    work_phone={'placeholder': "+7 (495) 999-92-29"},
+    email={'placeholder': "rir@minpodarok.gov.ru"})

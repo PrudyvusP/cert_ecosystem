@@ -8,131 +8,171 @@
 {% if field %}{{ field.strftime(format) }}{% else %}{{ sep }}{% endif %}
 {%- endmacro %}
 
+{% macro bool_plus_minus(value) -%}
+{% if value%}+{% else %}-{% endif %}
+{%- endmacro %}
+
 {% block body %}
-<div class="h1 text-center">{{ model.full_name }}</div>
-{% block details_table %}
-{% if admin_view.get_details_grouped %}
-{% set groups = admin_view.get_details_grouped() %}
-{% for group in groups %}
-<table class="table">
-  <tr>
-    <td class="field-name h4">{{ group | capitalize }}</td>
-  </tr>
-  {% for i in groups[group] %}
-  <tr>
-    <td class="field-name w-50"><b>{{ i[1] }}</b></td>
-    <td class="w-50">
-      {{ get_value(model, i[0]) | replace("\n", "<br>") | safe }}
-    </td>
-  </tr>
-  {% endfor %}
-</table>
-{% endfor %}
-{% else %}
-<table class="table">
-  {% for c, name in details_columns %}
-  <tr>
-    <td class="field-name"><b>{{ name }}</b></td>
-    <td>{{ get_value(model, c) }}</td>
-  </tr>
-  {% endfor %}
-</table>
-{% endif %}
+  <div class="h1 text-center">{{ model.full_name }}</div>
+  {% block details_table %}
+  {% if admin_view.get_details_grouped %}
+    {% set groups = admin_view.get_details_grouped() %}
+    {% for group in groups %}
+      <table class="table">
+        <tr><td class="field-name h4">{{ group | capitalize }}</td>
+        </tr>
+        {% for i in groups[group] %}
+        <tr>
+          <td class="field-name w-50"><b>{{ i[1] }}</b></td>
+          <td class="w-50">
+          {{ get_value(model, i[0]) | replace("\n", "<br>") | safe }}</td>
+          </tr>
+        {% endfor %}
+      </table>
+    {% endfor %}
+  {% else %}
+    <table class="table">
+      {% for c, name in details_columns %}
+      <tr>
+      <td class="field-name"><b>{{ name }}</b></td>
+      <td>{{ get_value(model, c) }}</td>
+      </tr>
+      {% endfor %}
+    </table>
+  {% endif %}
 
-{% if model.org_adm_doc %}
-<table class="table">
-  <tr>
-    <td class="field-name h4">Организационно-распорядительные документы</td>
-  </tr>
-  <tr>
-    <th class="align-middle">Название документа</th>
-    <th class="align-middle">Дата утверждения</th>
-    <th class="align-middle">Реквизиты</th>
-    <th class="align-middle">Комментарий</th>
-    <th class="align-middle">Файл</th>
-  </tr>
-  {% for doc in model.org_adm_doc %}
-  <tr>
-    <td class="align-middle">{{ doc.org_doc.name }}</td>
-    <td class="align-middle">{{ strftime_if_exists(doc.date_approved) }}</td>
-    <td class="align-middle">{{ fill_data_or_none(doc.props) }}</td>
-    <td class="align-middle">{{ fill_data_or_none(doc.comment) }}</td>
-    <td class="align-middle">
-      <a href="{{ url_for('organizations.return_org_document',
-                            doc_id=doc.orgadm_id,
-                            org_id=model.org_id) }}">
-        <span class="fa fa-save glyphicon glyphicon-save"></span>
-      </a>
-    </td>
-  </tr>
-  {% endfor %}
-</table>
-{% endif %}
 
-{% if model.messages %}
-<table class="table">
-  <tr>
-    <td class="field-name h4">Переписка</td>
-  </tr>
-  <tr>
-    <th class="align-middle">Тип</th>
-    <th class="align-middle">Дата подписи</th>
-    <th class="align-middle">Номер письма</th>
-    <th class="align-middle">Наш входящий номер</th>
-    <th class="align-middle">Дата регистрации</th>
-    <th class="align-middle">Информация</th>
-  </tr>
-  {% for message in model.messages %}
-  <tr>
-    {% if not message.is_inbox %}
-    <td class="align-middle">Исх</td>
-    <td class="align-middle">{{ strftime_if_exists(message.date_approved) }}</td>
-    <td class="align-middle">{{ message.our_outbox_number }}</td>
-    <td class="align-middle">—</td>
-    <td class="align-middle">—</td>
-    {% else %}
-    <td class="align-middle">Вх</td>
-    <td class="align-middle">{{ strftime_if_exists(message.date_inbox_approved) }}</td>
-    <td class="align-middle">{{ message.number_inbox_approved }}</td>
-    <td class="align-middle">{{ message.our_inbox_number }}</td>
-    <td class="align-middle">{{ strftime_if_exists(message.date_registered) }}</td>
-    {% endif %}
-    <td class="align-middle">
-      <a href="{{ url_for('messages.details_view',
-                            id=message.message_id) }}">
-        {{ message.information }}
-      </a>
-    </td>
-  </tr>
-  {% endfor %}
-</table>
-{% endif %}
+  {% if model.com_contacts %}
+  <table class="table">
+    <tr>
+      <td class="field-name h4">Контакты</td>
+    </tr>
+    <tr>
+      <th class="align-middle">Подразделение</th>
+      <th class="align-middle">Руководство</th>
+      <th class="align-middle">Должность</th>
+      <th class="align-middle">ФИО</th>
+      <th class="align-middle">email</th>
+      <th class="align-middle">Моб. телефон</th>
+      <th class="align-middle">Раб. телефон</th>
+    </tr>
+    {% for com_contact in model.com_contacts %}
+    <tr>
+      <td class="align-middle">{{ fill_data_or_none(com_contact.dep) }}</td>
+      <td class="align-middle">{{ bool_plus_minus(com_contact.is_main) }}</td>
+      <td class="align-middle">{{ fill_data_or_none(com_contact.pos) }}</td>
+      <td class="align-middle">{{ fill_data_or_none(com_contact.fio) }}</td>
+      <td class="align-middle">{{ fill_data_or_none(com_contact.email) }}</td>
+      <td class="align-middle">{{ fill_data_or_none(com_contact.mob_phone) }}</td>
+      <td class="align-middle">{{ fill_data_or_none(com_contact.work_phone) }}
+      </td>
+    </tr>
+    {% endfor %}
+  </table>
+  {% endif %}
 
-{% if model.resources %}
-<table class="table">
-  <tr>
-    <td class="field-name h4">Собственные ресурсы</td>
-  </tr>
-  <tr>
-    <th class="align-middle">Название</th>
-    <th class="align-middle">Рег. №</th>
-    <th class="align-middle">Категория</th>
-    <th class="align-middle">Регионы размещения</th>
-  </tr>
-  {% for resource in model.resources %}
-  <tr>
-    <td class="align-middle">
-      <a href="{{ url_for('resources.details_view',
-                           id=resource.resource_id) }}">
-        {{ resource.name }}
-      </a>
-    </td>
-    <td class="align-middle">{{ fill_data_or_none(resource.fstec_reg_number) }}</td>
-    <td class="align-middle">{{ fill_data_or_none(resource.category) }}</td>
-    <td class="align-middle">{{ fill_data_or_none(resource.regions|join(", ") ) }}</td>
-  </tr>
-  {% endfor %}
-</table>
-{% endif %}
-{% endblock %}
+  {% if model.org_adm_doc %}
+  <table class="table">
+    <tr>
+      <td class="field-name h4">Организационно-распорядительные документы</td>
+    </tr>
+    <tr>
+      <th class="align-middle">Название документа</th>
+      <th class="align-middle">Дата утверждения</th>
+      <th class="align-middle">Реквизиты</th>
+      <th class="align-middle">Комментарий</th>
+      <th class="align-middle">Файл</th>
+    </tr>
+    {% for doc in model.org_adm_doc %}
+    <tr>
+      <td class="align-middle">{{ doc.org_doc.name }}</td>
+      <td class="align-middle">{{ strftime_if_exists(doc.date_approved) }}</td>
+      <td class="align-middle">{{ fill_data_or_none(doc.props) }}</td>
+      <td class="align-middle">{{ fill_data_or_none(doc.comment) }}</td>
+      <td class="align-middle">
+        <a href="{{ url_for('organizations.return_org_document',
+                              doc_id=doc.orgadm_id,
+                              org_id=model.org_id) }}">
+          <span class="fa fa-save glyphicon glyphicon-save"></span>
+        </a>
+      </td>
+    </tr>
+    {% endfor %}
+  </table>
+  {% endif %}
+
+  {% if model.messages %}
+  <table class="table">
+    <tr>
+      <td class="field-name h4">Переписка</td>
+    </tr>
+    <tr>
+      <th class="align-middle">Тип</th>
+      <th class="align-middle">Дата подписи</th>
+      <th class="align-middle">Номер письма</th>
+      <th class="align-middle">Наш входящий номер</th>
+      <th class="align-middle">Дата регистрации</th>
+      <th class="align-middle">Информация</th>
+    </tr>
+    {% for message in model.messages %}
+    <tr>
+      {% if not message.is_inbox %}
+      <td class="align-middle">Исх</td>
+      <td class="align-middle">{{ strftime_if_exists(message.date_approved) }}
+      </td>
+      <td class="align-middle">{{ message.our_outbox_number }}</td>
+      <td class="align-middle">—</td>
+      <td class="align-middle">—</td>
+      {% else %}
+      <td class="align-middle">Вх</td>
+      <td class="align-middle">{{ strftime_if_exists(message.date_inbox_approved)
+        }}
+      </td>
+      <td class="align-middle">{{ message.number_inbox_approved }}</td>
+      <td class="align-middle">{{ message.our_inbox_number }}</td>
+      <td class="align-middle">{{ strftime_if_exists(message.date_registered) }}
+      </td>
+      {% endif %}
+      <td class="align-middle">
+        <a href="{{ url_for('messages.details_view',
+                              id=message.message_id) }}">
+          {{ message.information }}
+        </a>
+      </td>
+    </tr>
+    {% endfor %}
+  </table>
+  {% endif %}
+
+  {% if model.resources %}
+  <table class="table">
+    <tr>
+      <td class="field-name h4">Собственные ресурсы</td>
+    </tr>
+    <tr>
+      <th class="align-middle">Название</th>
+      <th class="align-middle">Рег. №</th>
+      <th class="align-middle">Категория</th>
+      <th class="align-middle">Регионы размещения</th>
+    </tr>
+    {% for resource in model.resources %}
+    <tr>
+      <td class="align-middle">
+        <a href="{{ url_for('resources.details_view',
+                             id=resource.resource_id) }}">
+          {{ resource.name }}
+        </a>
+      </td>
+      <td class="align-middle">{{ fill_data_or_none(resource.fstec_reg_number)
+        }}
+      </td>
+      <td class="align-middle">{{ fill_data_or_none(resource.category) }}</td>
+      <td class="align-middle">{{ fill_data_or_none(resource.regions|join(", ") )
+        }}
+      </td>
+    </tr>
+    {% endfor %}
+  </table>
+  {% endif %}
+  {% endblock %}
 {% endblock %}

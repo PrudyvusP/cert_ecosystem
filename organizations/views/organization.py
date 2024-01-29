@@ -30,10 +30,10 @@ from ..filters import (OrgRegionFilter,
                        OrgDocumentsAndFilter, OrgRegionNotFilter,
                        OrgOkrugNotFilter)
 from ..forms import (AddSubjectDocumentForm, validate_future_date,
-                     validate_inn, validate_ogrn, validate_kpp,
+                     validate_inn, validate_ogrn, validate_kpp, validate_email,
                      SendMethodDocsToOrgForm, sender_choices)
 from ..lingva_master import LingvaMaster
-from ..models import (Organization, Region, OrgAdmDoc,
+from ..models import (Contact, Organization, Region, OrgAdmDoc,
                       OrgAdmDocOrganization, Okrug,
                       Message, MethodicalDoc)
 from ..utils import (create_pdf, create_dot_pdf,
@@ -131,25 +131,33 @@ class OrganizationModelView(BaseModelView):
     details_template = 'admin/org_details.html'
     details_columns_grouped = get_details_grouped
     details_grouped = True
-    column_details_list = ('full_name', 'short_name', 'inn', 'kpp', 'ogrn',
-                           'factual_address', 'region',
-                           'boss_position', 'boss_fio', 'contacts',
-                           'date_agreement', 'agreement_unit', 'is_gov',
-                           'is_military', 'is_subject_kii',
-                           'uuid', 'date_added', 'date_updated')
 
     # CREATE / UPDATE options
-    form_args = {"date_agreement": {"validators": [validate_future_date]},
-                 "inn": {"validators": [Optional(), validate_inn]},
-                 "ogrn": {"validators": [Optional(), validate_ogrn]},
-                 "kpp": {"validators": [Optional(), validate_kpp]}
-                 }
-    form_excluded_columns = ('resources', 'responsible_unit', 'db_name',
-                             'messages', 'org_adm_doc', 'uuid',
-                             'date_added', 'date_updated', 'is_active')
+    form_args = {
+        "date_agreement": {
+            "validators": [validate_future_date],
+            "description": None},
+        "inn": {"validators": [Optional(), validate_inn],
+                "description": None},
+        "ogrn": {"validators": [Optional(), validate_ogrn],
+                 "description": None},
+        "kpp": {"validators": [Optional(), validate_kpp],
+                "description": None},
+        "full_name": {"description": None},
+        "short_name": {"description": None},
+        "factual_address": {"description": None},
+        "region": {"description": None},
+        "boss_position": {"description": None},
+        "boss_fio": {"description": None},
+        "contacts": {"description": None},
+        "agreement_unit": {"description": None},
+        "com_contacts" : {"description": None}
+
+    }
+
     form_rules = (
         FieldSet(('full_name', 'short_name', 'inn', 'kpp', 'ogrn'),
-                 'Основные реквизиты организации'),
+                 'Основные реквизиты'),
         FieldSet(('factual_address', 'region'),
                  'Адресная информация'),
         FieldSet(('boss_position', 'boss_fio', 'contacts'),
@@ -157,7 +165,24 @@ class OrganizationModelView(BaseModelView):
         FieldSet(('date_agreement', 'agreement_unit'),
                  'Соглашение о сотрудничестве'),
         FieldSet(('is_gov', 'is_military'),
-                 'Характеристики организации'))
+                 'Характеристики'),
+        FieldSet(('com_contacts',), 'Контактные данные NEW')
+    )
+
+    inline_models = [
+        (Contact,
+         dict(form_columns=['contact_id', 'fio',
+                            'dep', 'pos', 'mob_phone',
+                            'work_phone', 'email', 'is_main'],
+              column_labels=dictionary.contact_fields_labels,
+              form_args={
+                  "email": {"validators": [Optional(), validate_email]},
+                  "work_phone": {"validators": []},
+                  "mob_phone": {"validators": []}},
+              form_widget_args=dictionary.contact_fields_placeholders)
+         )
+    ]
+
     form_widget_args = dictionary.organization_fields_placeholders
 
     @expose('/')
@@ -295,8 +320,6 @@ class OrganizationModelView(BaseModelView):
                     "organizations.org_documents_view",
                     org_id=org.org_id)
                 )
-            print(dir_name, type(dir_name), type(create_dot_pdf(document.name_prefix)))
-
 
             filename = os.path.join(dir_name,
                                     create_dot_pdf(document.name_prefix)

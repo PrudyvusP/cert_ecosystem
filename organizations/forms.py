@@ -10,6 +10,7 @@ from wtforms.validators import (InputRequired, Optional,
 from .views.forms_placeholders import message_fields_descriptions as mfd
 
 MESSAGE_DATE_TODAY_TEXT = "Дата подписи должна быть не позднее сегодня"
+EMAIL_NOT_CORRECT_TEXT = "Введите корректный email"
 ORG_INN_NOT_CORRECT_TEXT = "Введите корректный ИНН"
 ORG_OGRN_NOT_CORRECT_TEXT = "Введите корректный ОГРН"
 ORG_KPP_NOT_CORRECT_TEXT = "Введите корректный КПП"
@@ -17,9 +18,10 @@ ORG_KPP_NOT_CORRECT_TEXT = "Введите корректный КПП"
 ATTACH_ORG_DOCUMENT_COMMENT_TEXTAREA_ROWS = 4
 
 SEND_METHOD_DOC_FIO_REGEX_TEXT = 'Три слова кириллицы, разделенных пробелом'
-SEND_METHOD_DOC_RECIPIENT_POSITION_TEXT = ('Руководителю Департамента заклинаний '
-                                           'Министерства магии '
-                                           'Российской Федерации')
+SEND_METHOD_DOC_RECIPIENT_POSITION_TEXT = (
+    'Руководителю Департамента заклинаний '
+    'Министерства магии '
+    'Российской Федерации')
 SEND_METHOD_DOC_RECIPIENT_ADDRESS_TEXT = 'ул. Ясная, д. 39А, г. Москва, 125212'
 SEND_METHOD_DOC_RECIPIENT_FIO_TEXT = 'Скайуокер Энакин Юрьевич'
 SEND_METHOD_DOC_CHECKBOX_SIZE = 14
@@ -86,6 +88,13 @@ def validate_kpp(form, field):
 
     if len(field.data) != 9:
         raise ValidationError(ORG_KPP_NOT_CORRECT_TEXT)
+
+
+def validate_email(form, field):
+    """Проверяет почту на соответствие шаблону e-mail."""
+
+    if '@' not in field.data:
+        raise ValidationError(EMAIL_NOT_CORRECT_TEXT)
 
 
 class CustomInputRequired(InputRequired):
