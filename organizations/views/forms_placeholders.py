@@ -76,7 +76,6 @@ def get_beautiful_org_formatter(instance: ModelView) -> dict:
             [
                 ('is_gov', instance.column_labels['is_gov']),
                 ('is_military', instance.column_labels['is_military']),
-                ('is_subject_kii', instance.column_labels['is_subject_kii'])
             ],
         'Техническая информация':
             [
@@ -138,7 +137,6 @@ organization_fields_descriptions = dict(
     is_gov='Является ли организация государственной',
     is_military='Является ли организация военной',
     region='Регион, в котором зарегистрирована организация',
-    is_subject_kii='Является ли организация субъектом КИИ',
     is_active='Статус организации (Существующая или ликвидирована)'
 )
 
@@ -154,7 +152,6 @@ organization_fields_labels = dict(
     agreement_unit='Главное подразделение',
     is_gov='ГОС', is_military='ВОЕН',
     db_name='Название организации', region='Регион',
-    is_subject_kii='СКИИ',
     date_added='Дата внесения в БД',
     date_updated='Дата обновления сведений об организации в БД',
     is_active='АКТВ',
