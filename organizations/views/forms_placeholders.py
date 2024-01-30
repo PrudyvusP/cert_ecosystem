@@ -10,7 +10,8 @@ MESSAGE_INFORMATION_ROWS_CONST = 10
 MESSAGE_OUT_TEXT = 'ЛПУ-16'
 MESSAGE_OUT_OUR_TEXT = '161-10-11/22'
 
-ORG_ADDRESS_TEXT = "Ленинградское шоссе, д. 23А, г. Москва, 125212"
+ORG_ADDRESS_MAIL_TEXT = "ул. Красивая, д. 50/3, г. Краснодар, 350087"
+ORG_ADDRESS_TEXT = "ЛЕНИНГРАДСКОЕ ШОССЕ, Д. 23А, г. МОСКВА, 125212"
 ORG_AGRMNT_UNIT_TEXT = "Департамент физического развития"
 ORG_BOSS_FIO_TEXT = "Ромашкин Игорь Евгеньевич"
 ORG_BOSS_POS_TEXT = "Генеральный директор"
@@ -55,6 +56,8 @@ def get_beautiful_org_formatter(instance: ModelView) -> dict:
             [
                 ('factual_address',
                  instance.column_labels['factual_address']),
+                ('mailing_address',
+                 instance.column_labels['mailing_address']),
                 ('region', instance.column_labels['region'])
             ],
         'Руководство':
@@ -127,7 +130,8 @@ organization_fields_descriptions = dict(
     inn='Идентификационный номер налогоплательщика (организации)',
     kpp='Код причины постановки на учет (организации)',
     ogrn='Основной государственный регистрационный номер (организации)',
-    factual_address='Адрес местонахождения (организации)',
+    factual_address='Юридический адрес (организации)',
+    mailing_address='Почтовый адрес (организации)',
     boss_position='Должность руководителя (организации)',
     boss_fio='Фамилия Имя Отчество руководителя (организации)',
     contacts='Контакты (ФИО, телефоны, электронные почты)',
@@ -144,7 +148,8 @@ organization_fields_labels = dict(
     full_name='Полное наименование',
     short_name='Сокращенное наименование',
     inn='ИНН', ogrn='ОГРН', kpp='КПП',
-    factual_address='Адрес местонахождения',
+    factual_address='Юридический адрес',
+    mailing_address='Почтовый адрес',
     boss_position='Должность руководителя',
     boss_fio='ФИО руководителя',
     contacts='Контакты',
@@ -165,6 +170,7 @@ organization_fields_placeholders = dict(
     kpp={'placeholder': ORG_KPP_TEXT},
     ogrn={'placeholder': ORG_OGRN_TEXT},
     factual_address={'placeholder': ORG_ADDRESS_TEXT},
+    mailing_address={'placeholder': ORG_ADDRESS_MAIL_TEXT},
     boss_position={'placeholder': ORG_BOSS_POS_TEXT},
     boss_fio={'placeholder': ORG_BOSS_FIO_TEXT},
     contacts={'placeholder': ORG_CONTACTS_TEXT,
