@@ -17,6 +17,7 @@ class Organization(DateAddedCreatedMixin, db.Model):
     kpp = db.Column(db.String(9), index=True)
     ogrn = db.Column(db.String(13), index=True)
     factual_address = db.Column(db.Text)
+    mailing_address = db.Column(db.Text, nullable=True)
     boss_position = db.Column(db.String(200))
     boss_fio = db.Column(db.String(200))
     contacts = db.Column(db.Text)

@@ -75,6 +75,7 @@ class OrganizationModelView(BaseModelView):
 
         model.contacts = form.contacts.data or None
         model.factual_address = form.factual_address.data or None
+        model.mailing_address = form.mailing_address.data or None
         model.agreement_unit = form.agreement_unit.data or None
 
     def get_details_grouped(self) -> dict:
@@ -101,6 +102,7 @@ class OrganizationModelView(BaseModelView):
                            'date_updated', 'region_id', 'ogrn', 'db_name',
                            'agreement_unit', 'boss_fio', 'is_gov',
                            'boss_position', 'factual_address',
+                           'mailing_address',
                            'is_military', 'is_active']
     column_filters = ('db_name',
                       OrgHasAgreementFilter(
@@ -146,19 +148,20 @@ class OrganizationModelView(BaseModelView):
         "full_name": {"description": None},
         "short_name": {"description": None},
         "factual_address": {"description": None},
+        "mailing_address": {"description": None},
         "region": {"description": None},
         "boss_position": {"description": None},
         "boss_fio": {"description": None},
         "contacts": {"description": None},
         "agreement_unit": {"description": None},
-        "com_contacts" : {"description": None}
+        "com_contacts": {"description": None}
 
     }
 
     form_rules = (
         FieldSet(('full_name', 'short_name', 'inn', 'kpp', 'ogrn'),
                  'Основные реквизиты'),
-        FieldSet(('factual_address', 'region'),
+        FieldSet(('factual_address', 'mailing_address', 'region'),
                  'Адресная информация'),
         FieldSet(('boss_position', 'boss_fio', 'contacts'),
                  'Контактные данные'),
@@ -537,6 +540,7 @@ class OrganizationModelView(BaseModelView):
 
             org.boss_fio = recipient.fio
             org.boss_position = recipient_position
+            org.mailing_address = recipient_address
             docx = DocxTemplate(app.config['DOCX_TEMPLATE_PATH'])
 
             if [doc.is_conf for doc in chosen_method_docs if doc.is_conf]:
@@ -608,7 +612,7 @@ class OrganizationModelView(BaseModelView):
                     id=org.org_id)
                 )
 
-        form.org_address.data = org.factual_address
+        form.org_address.data = org.mailing_address or org.factual_address
         form.recipient_fio.data = org.boss_fio
         form.recipient_position.data = org.boss_position
         return self.render('admin/org_send_method_docs.html', form=form)
