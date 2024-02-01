@@ -1,4 +1,5 @@
 from .address import Address
+from .cert import Cert
 from .contact import Contact
 from .industry import Industry
 from .industry_resource import industries_resources_table

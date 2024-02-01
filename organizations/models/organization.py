@@ -64,6 +64,8 @@ class Organization(DateAddedCreatedMixin, db.Model):
                                cascade="all, delete",
                                order_by="desc(Message.datetime_created)",
                                )
+    certs = db.relationship("Cert",
+                            backref="org_owner")
 
     def __init__(self, full_name, short_name=None, ogrn=None, inn=None,
                  factual_address=None, boss_position=None, boss_fio=None,

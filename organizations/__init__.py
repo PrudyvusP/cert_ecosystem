@@ -7,7 +7,8 @@ from .commands import index, notify
 from .config import DevConfig, ProdConfig, TestConfig
 from .extentions import db, babel, migrate
 from .models import (Organization, Resource,
-                     OrgAdmDoc, Message, MethodicalDoc)
+                     OrgAdmDoc, Message, MethodicalDoc, Cert)
+from .views.cert import CertModelView
 from .views.home_view import HomeView
 from .views.message import MessageModelView
 from .views.method_doc import MethodDocModelView
@@ -35,6 +36,15 @@ def init_admin(app):
             name='Организации',
             category="Организации",
             endpoint='organizations')
+    )
+
+    admin.add_view(
+        CertModelView(
+            Cert,
+            db.session,
+            name="Центры мониторинга",
+            category="Организации",
+            endpoint='certs')
     )
 
     admin.add_view(
