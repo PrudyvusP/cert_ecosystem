@@ -322,3 +322,18 @@ contact_fields_placeholders = dict(
     mob_phone={'placeholder': "+7 (903) 111-11-11"},
     work_phone={'placeholder': "+7 (495) 999-92-29"},
     email={'placeholder': "rir@minpodarok.gov.ru"})
+
+cert_fields_labels = dict(
+    name="Наименование",
+    type="Класс",
+    date_actual_resp="Дата предоставления сведений",
+    org_owner="Владелец",
+    date_added='Дата внесения в БД',
+    date_updated='Дата обновления сведений об организации в БД',
+    uuid='Уникальный идентификатор'
+)
+
+cert_fields_placeholders = dict(
+    name={'placeholder': "SOC-security Центр"},
+    type={'placeholder': "А"}
+)
