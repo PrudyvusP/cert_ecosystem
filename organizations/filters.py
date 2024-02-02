@@ -136,30 +136,35 @@ class OrgIsSubjectKIIFilter(filters.BaseSQLAFilter):
 
 class ResourceRegionFilter(filters.FilterInList):
     def apply(self, query, value, alias=None):
-        return (query
-                .join(Region, Resource.regions)
-                .filter(Region.region_id.in_(value)
-                        )
-                )
+        resource_ids = (
+            db.session
+            .query(Resource.resource_id.distinct())
+            .join(Region, Resource.regions)
+            .filter(Region.region_id.in_(value))
+        )
+        return query.filter(Resource.resource_id.in_(resource_ids))
 
 
 class ResourceIndustryFilter(filters.FilterInList):
     def apply(self, query, value, alias=None):
-        resource_ids = (db.session
-                        .query(Resource.resource_id.distinct())
-                        .join(Industry, Resource.industries)
-                        .filter(Industry.industry_id.in_(value))
-                        )
+        resource_ids = (
+            db.session
+            .query(Resource.resource_id.distinct())
+            .join(Industry, Resource.industries)
+            .filter(Industry.industry_id.in_(value))
+        )
         return query.filter(Resource.resource_id.in_(resource_ids))
 
 
 class ResourceOkrugFilter(filters.FilterInList):
     def apply(self, query, value, alias=None):
-        return (query
-                .join(Region, Resource.regions)
-                .filter(Region.okrug_id.in_(value)
-                        )
-                )
+        resource_ids = (
+            db.session
+            .query(Resource.resource_id.distinct())
+            .join(Region, Resource.regions)
+            .filter(Region.okrug_id.in_(value))
+        )
+        return query.filter(Resource.resource_id.in_(resource_ids))
 
 
 class MessageIsMethodDoc(filters.BaseSQLAFilter):

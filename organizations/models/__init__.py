@@ -15,3 +15,5 @@ from .region import Region
 from .regions_resource import regions_resources_table
 from .resource import Resource
 from .responsibility import Responsibility
+from .responsibility_service import responsibilities_services_table
+from .service import Service

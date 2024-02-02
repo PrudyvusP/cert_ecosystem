@@ -1,34 +1,41 @@
+from .responsibility_service import responsibilities_services_table
 from ..extentions import db
 
 
 class Responsibility(db.Model):
     """Дополнительная модель для хранения информации
     об аутсорсинге ИБ-услуг ресурсам."""
-    __tablename__ = "responsibilities"
 
-    org_id = db.Column(
+    __tablename__ = "responsibilities_with_certs"
+    resp_id = db.Column(db.Integer, primary_key=True, unique=True)
+
+    cert_id = db.Column(
         db.Integer,
-        db.ForeignKey("organizations.org_id",
+        db.ForeignKey("certs.cert_id",
                       ondelete="CASCADE"),
-        primary_key=True
+        nullable=False
     )
     resource_id = db.Column(
         db.Integer,
         db.ForeignKey("resources.resource_id",
                       ondelete="CASCADE"),
-        primary_key=True
+        nullable=False
     )
 
     date_start = db.Column(db.Date, nullable=False, index=True)
-    date_end = db.Column(db.Date, nullable=False,
-                         primary_key=True, index=True)
+    date_end = db.Column(db.Date, nullable=False, index=True)
     props = db.Column(db.Text)
     comment = db.Column(db.Text)
 
-    organization = db.relationship("Organization",
-                                   back_populates="responsible_unit")
+    cert = db.relationship("Cert", back_populates="responsible_units")
     resource = db.relationship("Resource",
                                back_populates="outsource_org")
 
+    services = db.relationship("Service",
+                               secondary=responsibilities_services_table,
+                               back_populates="responsibilities",
+                               order_by='Service.name'
+                               )
+
     def __repr__(self):
-        return f"#{self.resource.name} by {self.organization.short_name}"
+        return f"{self.resource} + {self.cert}"

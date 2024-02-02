@@ -42,17 +42,12 @@ class Organization(DateAddedCreatedMixin, db.Model):
                                 backref="org_owner",
                                 passive_deletes=True,
                                 primaryjoin=soft_delete_condition,
-                                order_by="Resource.fstec_reg_number,"
-                                         "Resource.name")
+                                order_by="Resource.name")
 
     com_contacts = db.relationship("Contact",
                                    backref="from_org",
                                    passive_deletes=True,
                                    order_by="desc(Contact.is_main)")
-
-    responsible_unit = db.relationship("Responsibility",
-                                       back_populates="organization",
-                                       cascade="all, delete")
 
     org_adm_doc = db.relationship("OrgAdmDocOrganization",
                                   back_populates="organization",
