@@ -19,5 +19,9 @@ class Cert(DateAddedCreatedMixin, db.Model):
                        db.ForeignKey("organizations.org_id",
                                      ondelete="SET NULL"))
 
+    responsible_units = db.relationship("Responsibility",
+                                        back_populates="cert",
+                                        cascade="all, delete")
+
     def __repr__(self):
         return self.name
