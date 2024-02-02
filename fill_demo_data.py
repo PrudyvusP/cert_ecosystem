@@ -5,7 +5,7 @@ from data_storage.db_data import (org_data, resource_data, methodics_data,
                                   org_adm_doc_data, messages_data)
 from organizations import create_app
 from organizations.extentions import db
-from organizations.models import (Organization, Resource, Responsibility,
+from organizations.models import (Organization, Resource,
                                   MethodicalDoc, Message, Region, OrgAdmDoc,
                                   Industry)
 
@@ -60,16 +60,6 @@ def fill_demo_data() -> None:
             regions=res_regions
         )
         db.session.add(new_resource)
-
-    responsible_resource = db.session.query(Resource).get(1)
-
-    new_resp = Responsibility(
-        organization=resource_owner,
-        resource=responsible_resource,
-        date_start=datetime.datetime(2020, 5, 24),
-        date_end=datetime.datetime(2022, 12, 12)
-    )
-    db.session.add(new_resp)
 
     lst_with_methods = []
 
