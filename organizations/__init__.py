@@ -3,7 +3,7 @@ import logging
 from flask import Flask
 from flask_admin import Admin
 
-from .commands import index, notify
+from .commands import index, notify, parse
 from .config import DevConfig, ProdConfig, TestConfig
 from .extentions import db, babel, migrate
 from .models import (Organization, Resource,
@@ -105,6 +105,7 @@ def create_app():
     babel.init_app(app)
     app.cli.add_command(index)
     app.cli.add_command(notify)
+    app.cli.add_command(parse)
 
     @app.shell_context_processor
     def make_shell_context():

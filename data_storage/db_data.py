@@ -123,6 +123,18 @@ org_data = [
         "kpp": "102456789",
         "region": 10,
         "contacts": "Ликвидатор\nСантехничкин Ч.У.,\nsan4@taro.uk"
+    },
+    {
+        "full_name": 'ОБЩЕСТВО С ОГРАНИЧЕННОЙ ОТВЕТСТВЕННОСТЬЮ "ДОМ ТЕСТОВ',
+        "short_name": 'ООО "ДОМ ТЕСТОВ"',
+        "is_gov": False,
+        "is_military": False,
+        "is_active": False,
+        "ogrn": "1111111111111",
+        "inn": "1111111111",
+        "kpp": "111111111",
+        "region": 77,
+        "date_agreement": datetime.datetime(2022, 5, 5),
     }
 ]
 

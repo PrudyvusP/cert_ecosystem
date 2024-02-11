@@ -1,3 +1,4 @@
+import json
 import os
 import re
 import smtplib
@@ -8,11 +9,15 @@ from email.mime.text import MIMEText
 from pathlib import Path
 from typing import List, Tuple
 
+import requests
+from flask import current_app as app
 from fpdf import FPDF
 from pytils import translit
+from requests.exceptions import InvalidJSONError
 from sqlalchemy import func
 
-from .exceptions import ModelAttributeError, SMTPAuthError
+from .exceptions import (EgrulApiWrongFormatError, ModelAttributeError,
+                         SMTPAuthError)
 
 INN_PATTERN = re.compile(r'(?<!\d)\d{10}(?!\d)')
 OGRN_PATTERN = re.compile(r'(?<!\d)\d{13}(?!\d)')
@@ -130,3 +135,58 @@ def send_mail(user: str,
         except Exception:
             raise SMTPAuthError('')
         server.sendmail(user, send_to, message.as_string())
+
+
+def get_api_url(url_to_go: str) -> str:
+    """Создает относительный путь адреса EGRUL-сервиса."""
+    base_api_url = app.config['EGRUL_SERVICE_URL']
+    return base_api_url + url_to_go
+
+
+def convert_from_json_to_dict(json_data: requests.models.Response) -> dict:
+    """Конвертирует ответ из json в dict."""
+    try:
+        response = json_data.json()
+    except json.JSONDecodeError:
+        app.logger.error('Ошибка конвертации ответа от EGRUL API!')
+        raise InvalidJSONError('Ошибка конвертации ответа от EGRUL API!')
+    return response
+
+
+def check_key_words_in_response(response, key_words):
+    """Проверяет наличие ключевых слов в ответе."""
+
+    for key_word in key_words:
+        if key_word not in response:
+            app.logger.error(
+                f'отсутствует {key_word} в структуре ответа от API'
+            )
+            raise EgrulApiWrongFormatError(
+                "В ответе не хватает ключевых слов")
+    return response
+
+
+def check_response(response: dict) -> list:
+    """Возвращает список организаций."""
+
+    if not isinstance(response, dict):
+        raise TypeError("Должен быть словарь!")
+
+    key_words = ["count", "next", "previous", "results", "date_info"]
+    response = check_key_words_in_response(response, key_words=key_words)
+    search_results = response["results"]
+    if not isinstance(search_results, list):
+        raise TypeError('Должен быть список!')
+    return search_results
+
+
+def check_retrieve_response(response: dict) -> dict:
+    """Возвращает словарь организации."""
+
+    if not isinstance(response, dict):
+        raise TypeError("Должен быть словарь!")
+
+    key_words = ["full_name", "short_name", "inn", "kpp", "ogrn",
+                 "factual_address", "region_code"]
+    response = check_key_words_in_response(response, key_words=key_words)
+    return response

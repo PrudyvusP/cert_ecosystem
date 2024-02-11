@@ -4,6 +4,7 @@ from flask.cli import with_appcontext
 
 from .pindex_to_db import find_db_indexes, fill_db_with_addresses_delta
 from .send_email_msg_report import send_notify_email
+from .xml_parser import XMLParser, XMLValidator
 
 CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 
@@ -52,3 +53,21 @@ def notify(ctx):
     письма с методическими документами,
     реквизиты которых не внесены в сервис."""
     send_notify_email()
+
+
+@click.command()
+@click.option("-s", "--schema", "schema", required=True,
+              type=click.Path(exists=True),
+              help="Путь до файла со схемой.")
+@click.option("-f", "--file", "file", required=True,
+              type=click.Path(exists=True),
+              help="Путь до файла с файлом.")
+@click.pass_context
+@with_appcontext
+def parse(ctx, schema, file):
+    """Парсит XML-файл."""
+    parser = XMLParser(schema=schema,
+                       file=file,
+                       validator=XMLValidator())
+    print(parser.parse())
+    # print(validator.validate())
