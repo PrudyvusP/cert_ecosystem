@@ -1,4 +1,5 @@
 import datetime
+import re
 from typing import Optional
 
 import requests
@@ -6,7 +7,7 @@ from lxml import etree
 
 from organizations.extentions import db
 from organizations.models import (Cert, Contact, Region, Resource,
-                                  Organization,
+                                  Organization)
 from organizations.utils import (check_response, check_retrieve_response,
                                  convert_from_json_to_dict,
                                  get_api_url)
@@ -116,9 +117,10 @@ class XMLParser:
                 city_name = ''
             else:
                 city_name += ', '
+        address = f'{address}, {city_name}{region_name}{index}'
         return {
             'region_code': region_code,
-            'address': f'{address}, {city_name}{region_name}{index}'
+            'address': re.sub(r';', ',', address)
         }
 
     @staticmethod
@@ -252,16 +254,20 @@ class XMLParser:
     def parse_kii(tag) -> dict:
         """Возвращает словарь с реквизитами КИИ."""
 
-        reg_number = None
+        fstec_reg_number = None
         category = None
+        is_okii = False
         if tag is not None:
             if tag.find('РегНом') is not None:
-                reg_number = tag.find('РегНом').text
+                is_okii = True
+                fstec_reg_number = tag.find('РегНом').text
             if tag.find('КатЗнач') is not None:
+                is_okii = True
                 category = tag.find('КатЗнач').text
         return {
-            "reg_number": reg_number,
-            "category": category
+            "fstec_reg_number": fstec_reg_number,
+            "category": category,
+            "is_okii": is_okii
         }
 
     def parse(self):
@@ -348,19 +354,25 @@ class XMLParser:
                 # TODO выход
             for res_root in res_roots:
                 res_name = res_root.attrib['Наим']
-                res_db = db.session.query(Resource).filter(
-                    Resource.name==res_name)
+                #res_db = db.session.query(Resource).filter(
+                #    Resource.name == res_name)
 
                 kii_info = self.parse_kii(res_root.find('СвКИИ'))
+
                 print(kii_info)
-                res_addresses = res_root.findall('СвАдрРазм')
+                res_formatted_address = []
+                res_addresses = res_root.findall('СвАдрРазм/АдрРазмОбкт')
                 for res_address in res_addresses:
-                    res_address_info = self.parse_address(res_address.find('АдрРазмОбкт'))
-                    print(res_address_info)
+                    res_address_info = self.parse_address(res_address)
+                    res_formatted_address.append(res_address_info['address'])
+                res_formatted_address = "; ".join(res_formatted_address)
 
+                cur_res = Resource(**kii_info,
+                                   factual_addresses=res_formatted_address,
+                                   name=res_name,
+                                   org_owner=zone_org)
 
-                print()
-
-        # db.session.commit()
+                print(cur_res)
+        db.session.commit()
 
         return -1
