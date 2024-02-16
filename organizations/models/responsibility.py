@@ -24,6 +24,7 @@ class Responsibility(db.Model):
 
     date_start = db.Column(db.Date, nullable=False, index=True)
     date_end = db.Column(db.Date, nullable=False, index=True)
+    type = db.Column(db.String(200))
     props = db.Column(db.Text)
     comment = db.Column(db.Text)
 

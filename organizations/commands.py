@@ -1,10 +1,12 @@
-# https://www.pochta.ru/support/database/ops
+import logging
+from datetime import datetime
+
 import click
 from flask.cli import with_appcontext
 
 from .pindex_to_db import find_db_indexes, fill_db_with_addresses_delta
 from .send_email_msg_report import send_notify_email
-from .xml_parser import XMLParser, XMLValidator
+from .xml_parser import XMLParser
 
 CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 
@@ -66,8 +68,17 @@ def notify(ctx):
 @with_appcontext
 def parse(ctx, schema, file):
     """Парсит XML-файл."""
+
+    now = datetime.now()
+    current_time = now.strftime('%H:%M:%S')
+    logger = logging.getLogger('xml_parser')
+    logger.setLevel(logging.INFO)
+    fh = logging.FileHandler(f'{file}-{current_time}.log')
+    fh.setLevel(logging.INFO)
+    formatter = logging.Formatter(
+        '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    fh.setFormatter(formatter)
+    logger.addHandler(fh)
     parser = XMLParser(schema=schema,
-                       file=file,
-                       validator=XMLValidator())
-    print(parser.parse())
-    # print(validator.validate())
+                       file=file)
+    parser.parse()

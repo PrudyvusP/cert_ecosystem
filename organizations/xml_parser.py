@@ -1,4 +1,5 @@
 import datetime
+import logging
 import re
 from typing import Optional
 
@@ -7,13 +8,15 @@ from lxml import etree
 
 from organizations.extentions import db
 from organizations.models import (Cert, Contact, Region, Resource,
-                                  Organization)
+                                  Responsibility, Organization, Service)
 from organizations.utils import (check_response, check_retrieve_response,
                                  convert_from_json_to_dict,
                                  get_api_url)
 
 
 class XMLValidator:
+    def __init__(self):
+        self.logger = logging.getLogger('xml_parser')
 
     @staticmethod
     def get_xml_root(file):
@@ -28,22 +31,24 @@ class XMLValidator:
         schema_root = etree.parse(schema)
         return etree.XMLSchema(schema_root)
 
-    @staticmethod
-    def check_xml_syntax(file) -> dict:
+    def check_xml_syntax(self, file) -> dict:
         """Возвращает результат проверки синтаксиса XML."""
 
         try:
             etree.parse(file)
         except IOError as e:
+            self.logger.error('Ошибка файловой системы')
             return {
                 "status": "error",
                 "message": "Ошибка файловой системы",
                 "log": str(e)}
         except etree.XMLSyntaxError as e:
+            self.logger.error('Ошибка синтаксиса XML')
             return {
                 "status": "error",
                 "message": "Ошибка синтаксиса XML",
                 "log": str(e)}
+        self.logger.info('Синтаксис XML ок')
         return {
             "status": "ok",
             "message": "Синтаксис XML ок",
@@ -57,13 +62,15 @@ class XMLValidator:
 
         xml_ok = schema.validate(xml)
         if xml_ok:
+            self.logger.info('XML соответствует схеме')
             return {
                 "status": "ok",
                 "message": "XML соответствует схеме",
                 "log": ""}
+        self.logger.error('Ошибка соответствия XML-файла XSD-схеме')
         return {
             "status": "error",
-            "message": "Ошибка соответствия XML",
+            "message": "Ошибка соответствия XML-файла XSD-схеме",
             "log": str(schema.error_log)}
 
     def validate(self, schema, file):
@@ -74,15 +81,23 @@ class XMLValidator:
 
 
 class XMLParser:
+
     def __init__(self, schema, file, validator=XMLValidator()):
         self.schema = schema
         self.file = file
+        self.regions = self.get_regions()
+        self.logger = logging.getLogger('xml_parser')
+        self.logger.info('Создаю инстанс XMLParser')
         self.validator = validator
 
     def get_xml_root(self):
         """Возвращает древо элементов XML-файла."""
 
         return etree.parse(self.file)
+
+    def get_regions(self):
+        # session.scalars(query).all()
+        return [code for code, in db.session.query(Region.region_id).all()]
 
     @staticmethod
     def get_org_issues(tag) -> dict:
@@ -96,11 +111,18 @@ class XMLParser:
             'full_name': owner_info['НаимЮЛПолн']
         }
 
-    @staticmethod
-    def parse_address(tag) -> dict:
+    def parse_address(self, tag) -> dict:
         """Возвращает словарь гео данных из XML-элемента <tag>."""
 
+        self.logger.info(f'Запускаю парсер адреса тега <{tag.tag}>')
+
         region_code = tag.find('КодРегион').text
+
+        if int(region_code) not in self.regions:
+            self.logger.warning(f'Код региона {region_code} не найден в БД. '
+                                f'Присваиваю код региона = 99')
+            region_code = '99'
+
         region_name = tag.find('НаимРегион').text
         address = tag.find('Адрес').text
         index = ''
@@ -118,27 +140,29 @@ class XMLParser:
             else:
                 city_name += ', '
         address = f'{address}, {city_name}{region_name}{index}'
+        self.logger.info(f'Адрес {address} успешно обработан')
+        self.logger.info(f'Код региона {region_code} успешно обработан')
         return {
             'region_code': region_code,
             'address': re.sub(r';', ',', address)
         }
 
     @staticmethod
-    def parse_contact(tag) -> dict:
-        """Возвращает словарь контактов из XML-элемента <tag>."""
+    def parse_contact(root) -> dict:
+        """Возвращает словарь контактов из XML-элемента <root>."""
 
-        fio = tag.find('ФИО').text
+        fio = root.find('ФИО').text
         dep = None
-        if tag.find('Подразд') is not None:
-            dep = tag.find('Подразд').text
+        if root.find('Подразд') is not None:
+            dep = root.find('Подразд').text
         pos = None
-        if tag.find('Должн') is not None:
-            pos = tag.find('Должн').text
+        if root.find('Должн') is not None:
+            pos = root.find('Должн').text
         mob_phone = None
-        if tag.find('МобТел') is not None:
-            mob_phone = tag.find('МобТел').text
-        work_phone = tag.find('РабТел').text
-        email = tag.find('ЭлПоч').text
+        if root.find('МобТел') is not None:
+            mob_phone = root.find('МобТел').text
+        work_phone = root.find('РабТел').text
+        email = root.find('ЭлПоч').text
 
         return {
             "fio": fio,
@@ -149,20 +173,47 @@ class XMLParser:
             "email": email
         }
 
+    def parse_document(self, root) -> dict:
+        """Возвращает словарь документов из XML-элемента <root>."""
+
+        self.logger.info('Обрабатываю реквизиты документа')
+        date_start = datetime.date.fromisoformat(root.find('ДатаСтарт').text)
+        date_end = datetime.date.fromisoformat(root.find('ДатаФиниш').text)
+        if date_end <= date_start:
+            self.logger.error(f'Дата окончания документа {date_end} меньше, '
+                              f'чем дата начала действия {date_start}')
+        comment = None
+        if root.find('Ком') is not None:
+            comment = root.find('Ком').text
+
+        return {
+            "type": root.find('Наим').text,
+            "props": root.find('Рекв').text,
+            "date_start": date_start,
+            "date_end": date_end,
+            "comment": comment
+        }
+
     def create_contacts(self, root, tag, org) -> list:
         """Возвращает список объектов типа Contact."""
+
+        self.logger.info(f'Запускаю парсер тега с контактами <{tag}>')
 
         center_contacts = []
         for contact in root.findall(tag):
             cur_contact = self.parse_contact(contact)
             center_contacts.append(Contact(org_id=org, **cur_contact))
+
+        self.logger.info(f'Найдено контактов: {len(center_contacts)}')
         return center_contacts
 
-    @staticmethod
-    def get_org_from_db(inn: str,
+    def get_org_from_db(self,
+                        inn: str,
                         kpp: str,
                         ogrn: str) -> Optional[Organization]:
-        """Возвращает из БД организацию по переданным ИНН, КПП, ОГРН. """
+        """Возвращает из БД организацию по переданным ИНН, КПП, ОГРН."""
+
+        self.logger.info(f'Ищу юридическое лицо (ИНН {inn}) в БД')
         return (db.session
                 .query(Organization)
                 .filter(Organization.inn == inn,
@@ -170,33 +221,41 @@ class XMLParser:
                         Organization.ogrn == ogrn)
                 .first())
 
-    @staticmethod
-    def get_from_db_or_create_cert(name: str, owner: int) -> Cert:
-        """Возвращает Центр мониторинга из БД или создает его."""
+    def get_instance_from_db_or_create(
+            self, model,
+            name: str,
+            owner: int):
+        """Возвращает сущность из БД или создает ее."""
 
-        cert = (
+        self.logger.info(f'Ищу {model.__name__} {name} в БД')
+        instance = (
             db.session
-            .query(Cert)
-            .filter(Cert.name == name, Cert.org_owner == owner)
+            .query(model)
+            .filter(model.name == name, model.org_owner == owner)
             .first()
         )
-        if cert:
-            return cert
-        return Cert(name=name, org_owner=owner)
+        if instance:
+            self.logger.info(f'{model.__name__} {name} найден в БД')
+            return instance
+        self.logger.info(f'{model.__name__} {name} не найден в БД')
+        self.logger.info(f'Создаю сущность {model.__name__} {name}')
+        return model(name=name, org_owner=owner)
 
-    @staticmethod
-    def get_org_from_egrul(inn: str) -> Optional[Organization]:
+    def get_org_from_egrul(self, inn: str) -> Optional[Organization]:
         """Возвращает объект организации из ЕГРЮЛ API или None."""
+
+        self.logger.info(f'Ищу юр. лицо (ИНН {inn}) в ЕГРЮЛ')
 
         url = get_api_url('api/organizations/')
         params = {"inn": inn, "is_main": True}
 
         try:
+            self.logger.info(f'Отправляю поисковый запрос на {url} с '
+                             f'параметрами {params}')
             _request = requests.get(url, params=params)
 
         except requests.exceptions.RequestException:
-
-            # TODO EGRUL nedostupen, write to log
+            self.logger.warning('ЕГРЮЛ недоступен')
             return None
 
         response = convert_from_json_to_dict(_request)
@@ -210,8 +269,7 @@ class XMLParser:
                     _request = requests.get(url)
 
                 except requests.exceptions.RequestException:
-
-                    # TODO EGRUL nedostupen, write to log
+                    self.logger.warning('ЕГРЮЛ недоступен')
                     return None
 
                 response = convert_from_json_to_dict(_request)
@@ -242,13 +300,41 @@ class XMLParser:
         org = self.get_org_from_db(inn=inn,
                                    ogrn=ogrn,
                                    kpp=kpp)
-
         if org:
+            self.logger.info(f'Юр. лицо (ИНН {inn}) обнаружено в БД ')
             return org
+
+        self.logger.info(f'Не удалось найти юр. лицо (ИНН {inn}) в БД ')
+
         org_from_egrul = self.get_org_from_egrul(inn=inn)
         if org_from_egrul:
             return org_from_egrul
+        self.logger.info(f'Не удалось найти юр. лицо (ИНН {inn}) в ЕГРЮЛ ')
         return None
+
+    @staticmethod
+    def get_regions_from_xml(region_codes: list) -> list:
+        """Возвращает список объектов типа Region."""
+
+        regions = []
+        for region_code in region_codes:
+            cur_region = db.session.query(Region).get(region_code)
+            if cur_region:
+                regions.append(cur_region)
+        return regions
+
+    def get_services_from_xml(self, services) -> list:
+        """Возвращает список объектов типа Service."""
+
+        new_services = []
+        for service in services:
+            cur_service = db.session.query(Service).filter(
+                Service.name == service.text).first()
+            if cur_service:
+                new_services.append(cur_service)
+
+        self.logger.info(f'Найдено услуг: {len(new_services)}')
+        return new_services
 
     @staticmethod
     def parse_kii(tag) -> dict:
@@ -272,57 +358,47 @@ class XMLParser:
 
     def parse(self):
         if not self.validator.validate(self.schema, self.file):
+            self.logger.error('Ошибка валидации XML файла. Выход')
             return 'ERROR'
         tree = self.get_xml_root()
         root = tree.getroot()
-        center_info = root.attrib
-        date_form = datetime.date.fromisoformat(center_info['ДатаФорм'])
-        center_name = center_info['НаимЦентр']
-        center_klass = center_info['КлассЦентр']
-
-        owner_info = self.get_org_issues(root.find('СвЮЛ'))
-
+        cent_info = root.attrib
+        date_form = datetime.date.fromisoformat(cent_info['ДатаФорм'])
+        cent_name, cent_klass = cent_info['НаимЦентр'], cent_info['КлассЦентр']
+        self.logger.info(f'Начинаю работу с файлом центра {cent_name}')
+        owner_org = self.get_org_issues(root.find('СвЮЛ'))
         owner = self.get_org_from_db(
-            inn=owner_info['inn'],
-            kpp=owner_info['kpp'],
-            ogrn=owner_info['ogrn']
-        )
+            inn=owner_org['inn'], kpp=owner_org['kpp'], ogrn=owner_org['ogrn'])
 
         if not owner:
-            # TODO log
-            # TODO выход
-            pass
+            self.logger.error(f'Юр. лицо центра не найдено. Выход')
+            return 'ERROR'
 
         if not owner.date_agreement:
-            # TODO log
-            # TODO выход
-            pass
+            self.logger.error(f'У юр. лица центра отсутствует соглашение. '
+                              f'Выход')
+            return 'ERROR'
 
-        center_address_info = self.parse_address(root.find('СвЦентрАдр'))
-        center_mailing_address = center_address_info['address']
-        owner.mailing_address = center_mailing_address
-
+        cent_address_info = self.parse_address(root.find('СвЦентрАдр'))
+        cent_mailing_address = cent_address_info['address']
+        owner.mailing_address = cent_mailing_address
         owner.com_contacts.delete()
-
-        center_contacts = self.create_contacts(
-            root=root, tag='СвЦентрКонт', org=owner)
-        owner.com_contacts = center_contacts
-
+        cent_contacts = self.create_contacts(root=root, tag='СвЦентрКонт',
+                                             org=owner)
+        owner.com_contacts = cent_contacts
         db.session.add(owner)
-
-        cert = self.get_from_db_or_create_cert(center_name, owner)
-        cert.date_actual_resp, cert.type = date_form, center_klass
+        cert = self.get_instance_from_db_or_create(Cert, cent_name, owner)
+        cert.date_actual_resp, cert.type = date_form, cent_klass
         db.session.add(cert)
 
         zone_root = root.find('СвЗонаОтв')
         if zone_root.find('ЕдЗО') is None:
-            # TODO log
-            # TODO сохранить данные
-            # TODO выход
-            return -1
+            self.logger.info('Зона ответственности отсутствует. Штатный выход')
+            db.session.commit()
+            return 'SUCCESS'
 
         zones = zone_root.findall('ЕдЗО')
-
+        self.logger.info('Начинаю парсинг тега <ЕдЗО>')
         for zone in zones:
             zone_org_from_xml = self.get_org_issues(zone.find('СвЗОЮЛ'))
             org_inn, org_kpp, org_ogrn, org_name = zone_org_from_xml.values()
@@ -332,7 +408,9 @@ class XMLParser:
                 ogrn=org_ogrn)
 
             if not zone_org:
-                # TODO пишем лог, что организация не найдена и идем дальше
+                self.logger.error(
+                    f'Не удалось найти юр. лицо {org_name} (ИНН/КПП {org_inn}'
+                    f'/{org_kpp}). Перехожу к следующему тегу <ЕдЗО>')
                 continue
 
             org_contacts = self.create_contacts(
@@ -344,35 +422,73 @@ class XMLParser:
                 zone_org.com_contacts.delete()
                 zone_org.com_contacts = org_contacts
 
+            self.logger.info('Начинаю парсинг ресурсов')
+
             resources = zone.find('СвЗООбктЮЛ')
             res_roots = resources.findall('СвОбкт')
+
             # Ошибка схемы СвОбкт должен быть мин 1
             if res_roots is None:
-                pass
-                # TODO лог
-                # TODO сохраняем данные
-                # TODO выход
+                self.logger.error('Тег <СвОбкт> пустой. Перехожу к следующему '
+                                  'тегу <ЕдЗО>')
+                continue
+
             for res_root in res_roots:
                 res_name = res_root.attrib['Наим']
-                #res_db = db.session.query(Resource).filter(
-                #    Resource.name == res_name)
+                res = self.get_instance_from_db_or_create(
+                    Resource, name=res_name, owner=zone_org)
 
                 kii_info = self.parse_kii(res_root.find('СвКИИ'))
 
-                print(kii_info)
                 res_formatted_address = []
+                res_codes = []
                 res_addresses = res_root.findall('СвАдрРазм/АдрРазмОбкт')
                 for res_address in res_addresses:
                     res_address_info = self.parse_address(res_address)
                     res_formatted_address.append(res_address_info['address'])
+                    res_codes.append(res_address_info['region_code'])
                 res_formatted_address = "; ".join(res_formatted_address)
+                res.factual_addresses = res_formatted_address
+                res.is_okii = kii_info['is_okii']
+                res.fstec_reg_number = kii_info['fstec_reg_number']
+                res.category = kii_info['category']
+                res.regions = self.get_regions_from_xml(region_codes=res_codes)
+                db.session.add(res)
+                self.logger.info(f'Ресурс {res_name} успешно обработан')
 
-                cur_res = Resource(**kii_info,
-                                   factual_addresses=res_formatted_address,
-                                   name=res_name,
-                                   org_owner=zone_org)
+                doc_info = self.parse_document(res_root.find('СвДокумент'))
+                self.logger.info('Реквизиты документа успешно обработаны')
+                type, props, date_start, date_end, comment, = doc_info.values()
 
-                print(cur_res)
+                self.logger.info('Ищу в БД единицу зоны ответственности')
+                resp_exists = (
+                    db.session
+                    .query(Responsibility)
+                    .filter(Responsibility.date_start == date_start,
+                            Responsibility.date_end == date_end,
+                            Responsibility.resource_id == res.resource_id,
+                            Responsibility.cert == cert)
+                    .first()
+                )
+
+                if not resp_exists:
+                    self.logger.info('В БД отсутствует информация о зоне '
+                                     'ответственности. Создаю новую единицу')
+                    new_resp = Responsibility(**doc_info,
+                                              resource_id=res.resource_id,
+                                              cert=cert)
+                    db.session.add(new_resp)
+
+                    self.logger.info('Начинаю парсинг функций (услуг)')
+                    services = self.get_services_from_xml(
+                        res_root.findall('СвФункции/Функция'))
+                    new_resp.services = services
+                    db.session.add(new_resp)
+                else:
+                    self.logger.warning('Единица зоны ответственности уже '
+                                        'имеется в БД. Пропускаю')
+        self.logger.info('Начинаю выполнение транзакции в БД')
         db.session.commit()
+        self.logger.info('Транзакция выполнилась. Выход')
 
         return -1
