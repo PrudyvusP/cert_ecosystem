@@ -15,3 +15,6 @@ class Service(db.Model):
         back_populates="services",
         order_by='Responsibility.date_start'
     )
+
+    def __repr__(self):
+        return self.name

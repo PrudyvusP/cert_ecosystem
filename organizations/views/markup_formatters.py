@@ -73,3 +73,27 @@ def org_name_formatter(view, context, model, name) -> str:
                   id=model.org_id)
     full_url = f"<a href={url}>{model.full_name}</a>"
     return Markup(full_url)
+
+
+def res_name_formatter(view, context, model, name) -> str:
+    """Возвращает ссылку на отображение ресурса по названию."""
+    url = url_for('resources.details_view',
+                  id=model.resource.resource_id)
+    full_url = f"<a href={url}>{model.resource}</a>"
+    return Markup(full_url)
+
+
+def cert_name_formatter(view, context, model, name) -> str:
+    """Возвращает ссылку на отображение центра мониторинга по названию."""
+    url = url_for('certs.details_view',
+                  id=model.cert.cert_id)
+    full_url = f"<a href={url}>{model.cert}</a>"
+    return Markup(full_url)
+
+
+def resp_org_name_formatter(view, context, model, name) -> str:
+    """Возвращает ссылку на отображение профиля организации по названию."""
+    url = url_for('organizations.details_view',
+                  id=model.resource.org_id)
+    full_url = f"<a href={url}>{model.resource.org_owner.full_name}</a>"
+    return Markup(full_url)
