@@ -70,13 +70,13 @@ def parse(ctx, schema, file):
     """Парсит XML-файл."""
 
     now = datetime.now()
-    current_time = now.strftime('%H:%M:%S')
+    current_time = now.strftime('%Y-%m-%d-%H:%M:%S')
     logger = logging.getLogger('xml_parser')
     logger.setLevel(logging.INFO)
     fh = logging.FileHandler(f'{file}-{current_time}.log')
     fh.setLevel(logging.INFO)
     formatter = logging.Formatter(
-        '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        '%(asctime)s - %(levelname)s - %(funcName)s() - %(message)s')
     fh.setFormatter(formatter)
     logger.addHandler(fh)
     parser = XMLParser(schema=schema,
