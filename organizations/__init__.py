@@ -3,19 +3,15 @@ import logging
 from flask import Flask
 from flask_admin import Admin
 
-from .commands import index, notify
+from .commands import index, notify, parse
 from .config import DevConfig, ProdConfig, TestConfig
 from .extentions import db, babel, migrate
-from .models import (Organization, Resource,
-                     OrgAdmDoc, Message, MethodicalDoc, Cert)
-from .views.cert import CertModelView
-from .views.home_view import HomeView
-from .views.message import MessageModelView
-from .views.method_doc import MethodDocModelView
-from .views.orgadmdoc import OrgAdmDocModelView
-from .views.organization import OrganizationModelView
-from .views.resource import ResourceModelView
-from .views.workspace import WorkspaceView
+from .models import (Cert, Organization, Message, MethodicalDoc, OrgAdmDoc,
+                     Resource, Responsibility)
+from .views import (CertModelView, HomeView, MessageModelView,
+                    MethodDocModelView, OrgAdmDocModelView,
+                    OrganizationModelView, ResourceModelView,
+                    ResponseModelView, WorkspaceView)
 
 
 def init_admin(app):
@@ -48,6 +44,15 @@ def init_admin(app):
     )
 
     admin.add_view(
+        ResourceModelView(
+            Resource,
+            db.session,
+            name='Информационные ресурсы',
+            category='Организации',
+            endpoint='resources')
+    )
+
+    admin.add_view(
         OrgAdmDocModelView(
             OrgAdmDoc,
             db.session,
@@ -65,12 +70,11 @@ def init_admin(app):
     )
 
     admin.add_view(
-        ResourceModelView(
-            Resource,
+        ResponseModelView(
+            Responsibility,
             db.session,
-            name='Информационные ресурсы',
-            endpoint='resources',
-            category='Информационные ресурсы')
+            name='Зоны ответственности',
+            endpoint='responsibilities')
     )
 
     admin.add_view(
@@ -105,6 +109,7 @@ def create_app():
     babel.init_app(app)
     app.cli.add_command(index)
     app.cli.add_command(notify)
+    app.cli.add_command(parse)
 
     @app.shell_context_processor
     def make_shell_context():

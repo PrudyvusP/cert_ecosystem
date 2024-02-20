@@ -22,4 +22,4 @@ class Contact(DateAddedCreatedMixin, db.Model):
                        nullable=False)
 
     def __repr__(self):
-        return f'Контакт {self.contact_id} от Организации {self.org_id}'
+        return self.fio

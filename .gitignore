@@ -139,3 +139,9 @@ dmypy.json
 
 # tests
 *tests/
+
+# XML XSD
+*.xml
+*.XML
+*.xsd
+*.XSD

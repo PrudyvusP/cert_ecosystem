@@ -337,3 +337,14 @@ cert_fields_placeholders = dict(
     name={'placeholder': "SOC-security Центр"},
     type={'placeholder': "А"}
 )
+
+response_fields_labels = dict(
+    date_start="Дата начала действия",
+    date_end="Дата окончания действия",
+    type="Тип документа",
+    props="Реквизиты документа",
+    comment="Комментарий",
+    cert="Центр мониторинга",
+    resource="Ресурс",
+    services="Функции"
+)

@@ -46,8 +46,8 @@ class Organization(DateAddedCreatedMixin, db.Model):
 
     com_contacts = db.relationship("Contact",
                                    backref="from_org",
-                                   passive_deletes=True,
-                                   order_by="desc(Contact.is_main)")
+                                   lazy='dynamic',
+                                   passive_deletes=True)
 
     org_adm_doc = db.relationship("OrgAdmDocOrganization",
                                   back_populates="organization",

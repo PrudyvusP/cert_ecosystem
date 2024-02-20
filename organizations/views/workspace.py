@@ -1,21 +1,15 @@
-import json
 import re
 
 import requests
 from flask import current_app as app, flash, redirect, request, url_for
 from flask_admin import BaseView, expose
-from requests.exceptions import InvalidJSONError
 
-from ..exceptions import EgrulApiWrongFormatError
 from ..extentions import db
 from ..models import Organization, Region
-from ..utils import INN_PATTERN, KPP_PATTERN, OGRN_PATTERN
-
-
-def get_api_url(url_to_go: str) -> str:
-    """Создает относительный путь адреса EGRUL-сервиса."""
-    base_api_url = app.config['EGRUL_SERVICE_URL']
-    return base_api_url + url_to_go
+from ..utils import (INN_PATTERN, KPP_PATTERN, OGRN_PATTERN, get_api_url,
+                     check_response, check_retrieve_response,
+                     convert_from_json_to_dict,
+                     )
 
 
 def guess_search_term(term: str) -> dict:
@@ -30,35 +24,6 @@ def guess_search_term(term: str) -> dict:
         return {"ogrn": term}
     if re.match(KPP_PATTERN, term):
         return {"kpp": term}
-
-
-def convert_from_json_to_dict(json_data: requests.models.Response) -> dict:
-    """Конвертирует ответ из json в dict."""
-    try:
-        response = json_data.json()
-    except json.JSONDecodeError:
-        app.logger.error('Ошибка конвертации ответа от EGRUL API!')
-        raise InvalidJSONError('Ошибка конвертации ответа от EGRUL API!')
-    return response
-
-
-def check_response(response: dict) -> list:
-    """Возвращает список организаций."""
-    if not isinstance(response, dict):
-        raise TypeError("Должен быть словарь!")
-    key_words = ["count", "next", "previous", "results", "date_info"]
-    for key_word in key_words:
-        if key_word not in response:
-            app.logger.error(
-                f'отсутствует {key_word} в структуре ответа от API'
-            )
-            raise EgrulApiWrongFormatError(
-                "В запросе не хватает ключевых слов")
-
-    search_results = response["results"]
-    if not isinstance(search_results, list):
-        raise TypeError('Должен быть список!')
-    return search_results
 
 
 class WorkspaceView(BaseView):
@@ -138,6 +103,7 @@ class WorkspaceView(BaseView):
         api_url = get_api_url(request.form['org_url'].lstrip('/'))
         _request = requests.get(api_url)
         response = convert_from_json_to_dict(_request)
+        response = check_retrieve_response(response)
 
         new_org = Organization(
             inn=response['inn'],
