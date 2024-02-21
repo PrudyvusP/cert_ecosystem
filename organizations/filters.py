@@ -3,7 +3,7 @@ from flask_admin.contrib.sqla import filters
 from sqlalchemy import func
 
 from .extentions import db
-from .models import (Organization, Resource,
+from .models import (Organization, Resource, Responsibility,
                      Region, OrgAdmDocOrganization, Industry,
                      MethodicalDoc, Message)
 
@@ -189,3 +189,27 @@ class MessageIsMethodDoc(filters.BaseSQLAFilter):
 
     def get_options(self, view):
         return OPTIONS
+
+
+class RespResourceRegionFilter(filters.FilterInList):
+    def apply(self, query, value, alias=None):
+        resps_ids = (
+            db.session
+            .query(Responsibility.resp_id.distinct())
+            .join(Resource, Responsibility.resource)
+            .join(Region, Resource.regions)
+            .filter(Region.region_id.in_(value))
+        )
+        return query.filter(Responsibility.resp_id.in_(resps_ids))
+
+
+class RespResourceOkrugFilter(filters.FilterInList):
+    def apply(self, query, value, alias=None):
+        resps_ids = (
+            db.session
+            .query(Responsibility.resp_id.distinct())
+            .join(Resource, Responsibility.resource)
+            .join(Region, Resource.regions)
+            .filter(Region.okrug_id.in_(value))
+        )
+        return query.filter(Responsibility.resp_id.in_(resps_ids))

@@ -91,6 +91,14 @@ def cert_name_formatter(view, context, model, name) -> str:
     return Markup(full_url)
 
 
+def cert_main_name_formatter(view, context, model, name) -> str:
+    """Возвращает ссылку на отображение центра мониторинга по названию."""
+    url = url_for('certs.details_view',
+                  id=model.cert_id)
+    full_url = f"<a href={url}>{model.name}</a>"
+    return Markup(full_url)
+
+
 def resp_org_name_formatter(view, context, model, name) -> str:
     """Возвращает ссылку на отображение профиля организации по названию."""
     url = url_for('organizations.details_view',

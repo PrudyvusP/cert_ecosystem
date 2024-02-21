@@ -1,6 +1,6 @@
 from flask_admin.contrib.sqla.ajax import QueryAjaxModelLoader
 
-from .markup_formatters import org_list_formatter
+from .markup_formatters import org_list_formatter, cert_main_name_formatter
 from .master import BaseModelView
 from ..extentions import db
 from ..models import Organization
@@ -19,12 +19,14 @@ class CertModelView(BaseModelView):
         мониторинга."""
         return SEARCH_MODEL_TEXT
 
-    # crud
-    can_delete = True
+    # CRUD
+    can_create = False
+    can_edit = False
 
     # LIST options
     column_filters = ['type', ]
-    column_formatters = {"org_owner": org_list_formatter}
+    column_formatters = {"org_owner": org_list_formatter,
+                         "name": cert_main_name_formatter}
     column_exclude_list = ['date_added', 'date_updated', 'uuid']
     column_labels = dictionary.cert_fields_labels
     column_searchable_list = ['name',
