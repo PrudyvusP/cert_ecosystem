@@ -29,6 +29,9 @@ RESOURCE_NOT_DELETED_MSG = "Ресурсы не были удалены!"
 class ResourceModelView(BaseModelView):
     """View-класс информационного ресурса."""
 
+    def is_visible(self):
+        return False
+
     def get_query(self):
         """Переопределяет SELECT-запрос по умолчанию к БД
         с целью исключить из выборки неактивные информационные ресурсы."""

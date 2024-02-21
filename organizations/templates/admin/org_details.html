@@ -166,7 +166,9 @@
       <td class="align-middle">{{ fill_data_or_none(resource.fstec_reg_number)
         }}
       </td>
-      <td class="align-middle">{{ fill_data_or_none(resource.category) }}</td>
+      <td class="align-middle">
+        {% if resource.category or resource.category == 0%}
+        {{ resource.category }}{% else %}—{% endif %}</td>
       <td class="align-middle">{{ fill_data_or_none(resource.regions|join(", ") )
         }}
       </td>

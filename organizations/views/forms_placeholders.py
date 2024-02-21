@@ -324,10 +324,10 @@ contact_fields_placeholders = dict(
     email={'placeholder': "rir@minpodarok.gov.ru"})
 
 cert_fields_labels = dict(
-    name="Наименование",
+    name="Наименование центра мониторинга",
     type="Класс",
     date_actual_resp="Дата предоставления сведений",
-    org_owner="Владелец",
+    org_owner="Владелец центра мониторинга (организация)",
     date_added='Дата внесения в БД',
     date_updated='Дата обновления сведений об организации в БД',
     uuid='Уникальный идентификатор'
@@ -344,7 +344,5 @@ response_fields_labels = dict(
     type="Тип документа",
     props="Реквизиты документа",
     comment="Комментарий",
-    cert="Центр мониторинга",
-    resource="Ресурс",
     services="Функции"
 )

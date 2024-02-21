@@ -68,6 +68,7 @@ class XMLValidator:
                 "message": "XML соответствует схеме",
                 "log": ""}
         self.logger.error('Ошибка соответствия XML-файла XSD-схеме')
+        self.logger.error(schema.error_log)
         return {
             "status": "error",
             "message": "Ошибка соответствия XML-файла XSD-схеме",
