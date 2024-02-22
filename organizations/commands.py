@@ -1,12 +1,10 @@
-import logging
-from datetime import datetime
-
 import click
 from flask.cli import with_appcontext
 
 from .pindex_to_db import find_db_indexes, fill_db_with_addresses_delta
 from .send_email_msg_report import send_notify_email
-from .xml_parser import XMLParser
+from .utils import get_cur_time
+from .xml_parser import XMLHandler
 
 CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 
@@ -69,16 +67,11 @@ def notify(ctx):
 def parse(ctx, schema, file):
     """Парсит XML-файл."""
 
-    now = datetime.now()
-    current_time = now.strftime('%Y-%m-%d-%H:%M:%S')
-    logger = logging.getLogger('xml_parser')
-    logger.setLevel(logging.INFO)
-    fh = logging.FileHandler(f'{file}-{current_time}.log')
-    fh.setLevel(logging.INFO)
-    formatter = logging.Formatter(
-        '%(asctime)s - %(levelname)s - %(funcName)s() - %(message)s')
-    fh.setFormatter(formatter)
-    logger.addHandler(fh)
-    parser = XMLParser(schema=schema,
-                       file=file)
-    parser.parse()
+    cur_time = get_cur_time()
+    log_file_name = f'{file}-{cur_time}.log'
+    handler = XMLHandler(file=file, schema=schema, logger_name='xml_parser',
+                         logger_file=log_file_name)
+    if handler.handle():
+        click.echo("Успех")
+    else:
+        click.echo("Неудача. Смотри лог")

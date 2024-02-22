@@ -3,7 +3,7 @@ import datetime
 from flask_wtf import FlaskForm
 from wtforms import (widgets, StringField, SelectField, SubmitField,
                      DateField, RadioField, SelectMultipleField, TextAreaField,
-                     FileField)
+                     FileField, MultipleFileField)
 from wtforms.validators import (InputRequired, Optional,
                                 ValidationError, Regexp, StopValidation)
 
@@ -43,6 +43,7 @@ sender_form_choices = [(k, v) for k, v in sender_choices.items()]
 fio_regex = '\w+\s\w+\s\w+'
 without_symb_num_regex = '[^№]+'
 from_one_to_thousand_regex = '[1-9]\d{0,3}$'
+email_regex = r'([a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\.[a-zA-Z0-9_-]+)'
 
 
 class MultiCheckboxField(SelectMultipleField):
@@ -210,3 +211,17 @@ class SendMethodDocsToOrgForm(BaseMessageForm):
                          default=sender_form_choices[0][0])
 
     submit = SubmitField(render_kw={"disabled": True})
+
+
+class AddXMLForm(BaseFormWithSubmit):
+    """Форма для загрузки XML-файлов с зоной ответственности."""
+
+    files = MultipleFileField('XML-файлы',
+                              [InputRequired()])
+    email = StringField('E-mail',
+                        [InputRequired(),
+                         Regexp(email_regex,
+                                message='Введите корректный email')],
+                        render_kw={
+                            "placeholder": "rofel@mail.local"}
+                        )

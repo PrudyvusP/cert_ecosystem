@@ -27,7 +27,8 @@ class Config:
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
     MAX_CONTENT_LENGTH = 100 * 1024 * 1024
-
+    UPLOAD_PATH = path.join(BASE_DIR, STATIC_FOLDER, 'uploads')
+    SCHEMA_PATH = path.join(UPLOAD_PATH, 'CERT-ZONE-DATA-v-00.xsd')
     EGRUL_SERVICE_URL = environ.get('EGRUL_SERVICE_URL',
                                     'http://localhost:28961/')
 
@@ -40,6 +41,7 @@ class Config:
     SMTP_USER = environ.get('SMTP_USER')
     SMTP_PASSWORD = environ.get('SMTP_PASSWORD')
     BOSS_EMAIL_FOR_NOTIFY = environ.get('BOSS_EMAIL_FOR_NOTIFY').split(',')
+
 
 class ProdConfig(Config):
     """Настройки для продакшена."""
