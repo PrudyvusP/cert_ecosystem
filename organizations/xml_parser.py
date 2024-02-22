@@ -1,6 +1,5 @@
 import datetime
 import logging
-import re
 from typing import Optional
 
 import requests
@@ -15,88 +14,76 @@ from organizations.utils import (check_response, check_retrieve_response,
 
 
 class XMLValidator:
-    def __init__(self):
-        self.logger = logging.getLogger('xml_parser')
-
-    @staticmethod
-    def get_xml_root(file):
-        """Возвращает древо элементов XML-файла."""
-
-        return etree.parse(file)
-
-    @staticmethod
-    def get_schema_root(schema):
-        """Возвращает древо элементов XSD-схемы."""
-
-        schema_root = etree.parse(schema)
-        return etree.XMLSchema(schema_root)
-
-    def check_xml_syntax(self, file) -> dict:
-        """Возвращает результат проверки синтаксиса XML."""
-
-        try:
-            etree.parse(file)
-        except IOError as e:
-            self.logger.error('Ошибка файловой системы')
-            return {
-                "status": "error",
-                "message": "Ошибка файловой системы",
-                "log": str(e)}
-        except etree.XMLSyntaxError as e:
-            self.logger.error('Ошибка синтаксиса XML')
-            return {
-                "status": "error",
-                "message": "Ошибка синтаксиса XML",
-                "log": str(e)}
-        self.logger.info('Синтаксис XML ок')
-        return {
-            "status": "ok",
-            "message": "Синтаксис XML ок",
-            "log": ""}
-
-    def check_xml_schema(self, schema, file) -> dict:
-        """Возвращает результат соответствия XML схеме."""
-
-        schema = self.get_schema_root(schema)
-        xml = self.get_xml_root(file)
-
-        xml_ok = schema.validate(xml)
-        if xml_ok:
-            self.logger.info('XML соответствует схеме')
-            return {
-                "status": "ok",
-                "message": "XML соответствует схеме",
-                "log": ""}
-        self.logger.error('Ошибка соответствия XML-файла XSD-схеме')
-        self.logger.error(schema.error_log)
-        return {
-            "status": "error",
-            "message": "Ошибка соответствия XML-файла XSD-схеме",
-            "log": str(schema.error_log)}
-
-    def validate(self, schema, file):
-        if (self.check_xml_syntax(file).get('status') == 'ok' and
-                self.check_xml_schema(schema, file).get('status') == 'ok'):
-            return True
-        return False
-
-
-class XMLParser:
-
-    def __init__(self, schema, file, validator=XMLValidator()):
+    def __init__(self, schema, file, logger) -> None:
         self.schema = schema
         self.file = file
-        self.regions = self.get_regions()
-        self.logger = logging.getLogger('xml_parser')
-        self.logger.info('Создаю инстанс XMLParser')
-        self.validator = validator
+        self.logger = logging.getLogger(logger)
 
     def get_xml_root(self):
         """Возвращает древо элементов XML-файла."""
 
         return etree.parse(self.file)
 
-    def get_regions(self):
+    def get_schema_root(self):
+        """Возвращает древо элементов XSD-схемы."""
+
+        schema_root = etree.parse(self.schema)
+        return etree.XMLSchema(schema_root)
+
+    def check_xml_syntax(self) -> bool:
+        """Возвращает результат проверки синтаксиса XML."""
+
+        try:
+            etree.parse(self.file)
+        except IOError as e:
+            self.logger.error(f'Ошибка файловой системы {str(e)}')
+            return False
+        except etree.XMLSyntaxError as e:
+            self.logger.error(f'Ошибка синтаксиса XML {str(e)}')
+            return False
+        self.logger.info('Синтаксис XML ок')
+        return True
+
+    def check_xml_schema(self) -> bool:
+        """Возвращает результат соответствия XML схеме."""
+
+        schema = self.get_schema_root()
+        xml = self.get_xml_root()
+
+        xml_ok = schema.validate(xml)
+        if xml_ok:
+            self.logger.info('XML соответствует схеме')
+            return True
+        self.logger.error('Ошибка соответствия XML-файла XSD-схеме')
+        for error in schema.error_log:
+            self.logger.error(f'Строка: {error.line}. Ошибка: {error.message}')
+        return False
+
+    def validate(self) -> bool:
+        """Возвращает результат валидации XML-файла."""
+
+        if self.check_xml_syntax() and self.check_xml_schema():
+            self.logger.info('Валидация XML успешно завершена')
+            return True
+        self.logger.error('Ошибка валидации XML файла. Выход')
+        return False
+
+
+class XMLParser:
+
+    def __init__(self, schema, file, logger) -> None:
+        self.schema = schema
+        self.file = file
+        self.regions = self.get_regions()
+        self.logger = logging.getLogger(logger)
+
+    def get_xml_root(self):
+        """Возвращает древо элементов XML-файла."""
+
+        return etree.parse(self.file)
+
+    @staticmethod
+    def get_regions():
         # session.scalars(query).all()
         return [code for code, in db.session.query(Region.region_id).all()]
 
@@ -145,7 +132,7 @@ class XMLParser:
         self.logger.info(f'Код региона {region_code} успешно обработан')
         return {
             'region_code': region_code,
-            'address': re.sub(r';', ',', address)
+            'address': address.replace(';', ',')
         }
 
     @staticmethod
@@ -163,7 +150,9 @@ class XMLParser:
         if root.find('МобТел') is not None:
             mob_phone = root.find('МобТел').text
         work_phone = root.find('РабТел').text
-        email = root.find('ЭлПоч').text
+        email = None
+        if root.find('ЭлПоч') is not None:
+            email = root.find('ЭлПоч').text
 
         return {
             "fio": fio,
@@ -357,10 +346,9 @@ class XMLParser:
             "is_okii": is_okii
         }
 
-    def parse(self):
-        if not self.validator.validate(self.schema, self.file):
-            self.logger.error('Ошибка валидации XML файла. Выход')
-            return 'ERROR'
+    def parse(self) -> bool:
+        """Основной метод класса. Парсит XML-файл."""
+
         tree = self.get_xml_root()
         root = tree.getroot()
         cent_info = root.attrib
@@ -373,12 +361,12 @@ class XMLParser:
 
         if not owner:
             self.logger.error(f'Юр. лицо центра не найдено. Выход')
-            return 'ERROR'
+            return False
 
         if not owner.date_agreement:
             self.logger.error(f'У юр. лица центра отсутствует соглашение. '
                               f'Выход')
-            return 'ERROR'
+            return False
 
         cent_address_info = self.parse_address(root.find('СвЦентрАдр'))
         cent_mailing_address = cent_address_info['address']
@@ -396,7 +384,7 @@ class XMLParser:
         if zone_root.find('ЕдЗО') is None:
             self.logger.info('Зона ответственности отсутствует. Штатный выход')
             db.session.commit()
-            return 'SUCCESS'
+            return True
 
         zones = zone_root.findall('ЕдЗО')
         self.logger.info('Начинаю парсинг тега <ЕдЗО>')
@@ -491,5 +479,32 @@ class XMLParser:
         self.logger.info('Начинаю выполнение транзакции в БД')
         db.session.commit()
         self.logger.info('Транзакция выполнилась. Выход')
+        return True
 
-        return -1
+
+class XMLHandler:
+    def __init__(self, file, schema, logger_name, logger_file) -> None:
+        self.file = file
+        self.schema = schema
+        self.logger_name = logger_name
+        self.logger_file = logger_file
+        self.log_level = logging.INFO
+
+    def handle(self) -> bool:
+        """Основной метод класса. Возвращает результат обработки."""
+
+        logger = logging.getLogger(self.logger_name)
+        logger.setLevel(self.log_level)
+        fh = logging.FileHandler(self.logger_file)
+        formatter = logging.Formatter(
+            '%(asctime)s - %(levelname)s - %(funcName)s() - %(message)s')
+        fh.setFormatter(formatter)
+        logger.addHandler(fh)
+
+        validator = XMLValidator(self.schema, self.file, self.logger_name)
+        if not validator.validate():
+            return False
+        parser = XMLParser(self.schema, self.file, self.logger_name)
+        if parser.parse():
+            return True
+        return False

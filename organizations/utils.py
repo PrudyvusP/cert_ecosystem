@@ -3,9 +3,14 @@ import os
 import re
 import smtplib
 import uuid
+import zipfile
+from datetime import datetime
+from email import encoders
 from email.mime.application import MIMEApplication
+from email.mime.base import MIMEBase
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+from io import BytesIO
 from pathlib import Path
 from typing import List, Tuple
 
@@ -111,9 +116,12 @@ def send_mail(user: str,
               text: str,
               host: str,
               port: int,
-              filename=None) -> None:
+              filename=None,
+              file_binary=None,
+              file_binary_name=None) -> None:
     """Отправляет электронное письмо в соответствии
     с полученными параметрами."""
+
     message = MIMEMultipart()
     message['From'] = user
     message['To'] = ', '.join(send_to)
@@ -129,6 +137,13 @@ def send_mail(user: str,
                 f'attachment; filename={base_file_name}'
             )
         message.attach(attach)
+    if file_binary and file_binary_name:
+        part = MIMEBase('application', "octet-stream")
+        part.set_payload(file_binary)
+        encoders.encode_base64(part)
+        part.add_header('Content-Disposition',
+                        'attachment; filename="%s"' % (file_binary_name))
+        message.attach(part)
     with smtplib.SMTP(host, port) as server:
         try:
             server.login(user, password)
@@ -190,3 +205,25 @@ def check_retrieve_response(response: dict) -> dict:
                  "factual_address", "region_code"]
     response = check_key_words_in_response(response, key_words=key_words)
     return response
+
+
+def get_cur_time() -> str:
+    """Возвращает текущее время."""
+
+    now = datetime.now()
+    return now.strftime('%Y-%m-%d-%H:%M:%S')
+
+
+def create_zip_archive_mem(files):
+    """Возвращает архив в памяти."""
+
+    memory_archive = BytesIO()
+
+    with zipfile.ZipFile(memory_archive, 'a') as zf:
+        for file in files:
+            data = zipfile.ZipInfo(os.path.basename(file))
+            data.compress_type = zipfile.ZIP_DEFLATED
+            with open(file, "rb") as f:
+                zf.writestr(data, f.read())
+    memory_archive.seek(0)
+    return memory_archive.getvalue()
