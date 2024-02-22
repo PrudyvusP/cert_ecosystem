@@ -1,6 +1,6 @@
 import os.path
 
-from flask import request, redirect, flash, current_app as app
+from flask import request, redirect, flash, current_app as app, url_for
 from flask_admin import expose
 from werkzeug.utils import secure_filename
 
@@ -153,5 +153,8 @@ class ResponseModelView(BaseModelView):
                 file_binary=archive,
                 file_binary_name=archive_name
             )
-
+            flash('Информация из XML-файла(-ов) обработана, проверьте '
+                  'электронную почту через некоторое время',
+                  category='success')
+            return redirect(url_for('responsibilities.index_view'))
         return self.render('admin/resp_create.html', form=form)

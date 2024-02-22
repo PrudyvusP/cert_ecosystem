@@ -55,7 +55,8 @@ class XMLValidator:
             self.logger.info('XML соответствует схеме')
             return True
         self.logger.error('Ошибка соответствия XML-файла XSD-схеме')
-        self.logger.error(schema.error_log)
+        for error in schema.error_log:
+            self.logger.error(f'Строка: {error.line}. Ошибка: {error.message}')
         return False
 
     def validate(self) -> bool:

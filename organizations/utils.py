@@ -109,16 +109,6 @@ def cast_string_to_non_breaking_space(strq: str,
     return re.sub(phrase, "\xa0".join(phrase.split()), strq)
 
 
-def attach_file(file):
-    if isinstance(file, BytesIO):
-        f = open(file, 'rb')
-        attach = MIMEApplication(file, _subtype=suffix)
-        attach.add_header(
-            'Content-Disposition',
-            f'attachment; filename={base_file_name}'
-        )
-
-
 def send_mail(user: str,
               password: str,
               send_to: list,
@@ -231,7 +221,7 @@ def create_zip_archive_mem(files):
 
     with zipfile.ZipFile(memory_archive, 'a') as zf:
         for file in files:
-            data = zipfile.ZipInfo(file)
+            data = zipfile.ZipInfo(os.path.basename(file))
             data.compress_type = zipfile.ZIP_DEFLATED
             with open(file, "rb") as f:
                 zf.writestr(data, f.read())
