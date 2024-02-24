@@ -105,7 +105,7 @@ def get_instance_choices(model,
 
 def cast_string_to_non_breaking_space(strq: str,
                                       phrase: str) -> str:
-    "Возвращает строку с неразрывными пробелами вместо обычных."
+    """Возвращает строку с неразрывными пробелами вместо обычных."""
     return re.sub(phrase, "\xa0".join(phrase.split()), strq)
 
 
@@ -142,7 +142,7 @@ def send_mail(user: str,
         part.set_payload(file_binary)
         encoders.encode_base64(part)
         part.add_header('Content-Disposition',
-                        'attachment; filename="%s"' % (file_binary_name))
+                        'attachment; filename="%s"' % file_binary_name)
         message.attach(part)
     with smtplib.SMTP(host, port) as server:
         try:

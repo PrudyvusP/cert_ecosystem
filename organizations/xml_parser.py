@@ -26,9 +26,13 @@ class XMLValidator:
 
     def get_schema_root(self):
         """Возвращает древо элементов XSD-схемы."""
-
-        schema_root = etree.parse(self.schema)
-        return etree.XMLSchema(schema_root)
+        try:
+            schema_root = etree.parse(self.schema)
+        except OSError:
+            self.logger.error("Не удалось загрузить схему")
+            return None
+        else:
+            return etree.XMLSchema(schema_root)
 
     def check_xml_syntax(self) -> bool:
         """Возвращает результат проверки синтаксиса XML."""
@@ -48,8 +52,9 @@ class XMLValidator:
         """Возвращает результат соответствия XML схеме."""
 
         schema = self.get_schema_root()
+        if not schema:
+            return False
         xml = self.get_xml_root()
-
         xml_ok = schema.validate(xml)
         if xml_ok:
             self.logger.info('XML соответствует схеме')

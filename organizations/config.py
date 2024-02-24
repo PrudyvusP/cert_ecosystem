@@ -1,5 +1,6 @@
 from os import environ, path
 
+from celery.schedules import crontab
 from dotenv import load_dotenv
 
 basedir = path.abspath(path.dirname(__file__))
@@ -41,6 +42,22 @@ class Config:
     SMTP_USER = environ.get('SMTP_USER')
     SMTP_PASSWORD = environ.get('SMTP_PASSWORD')
     BOSS_EMAIL_FOR_NOTIFY = environ.get('BOSS_EMAIL_FOR_NOTIFY').split(',')
+
+    CELERY = {
+        "broker_url": environ.get('CELERY_BROKER_URL',
+                                  'pyamqp://localhost'),
+        "result_backend": None,
+        "task_ignore_result": True,
+        "timezone": "Europe/Moscow",
+        "beat_schedule":
+            {
+                "notify-every-mon-wed-fri-8-30": {
+                    "task": "organizations.tasks.send_notify_email",
+                    "schedule": crontab(hour=8, minute=30,
+                                        day_of_week=[1, 3, 5]),
+                }
+            }
+    }
 
 
 class ProdConfig(Config):

@@ -1,6 +1,6 @@
-import os.path
+import os
 
-from flask import request, redirect, flash, current_app as app, url_for
+from flask import current_app as app, flash, request, redirect, url_for
 from flask_admin import expose
 from werkzeug.utils import secure_filename
 
@@ -10,10 +10,9 @@ from .master import BaseModelView
 from ..filters import RespResourceRegionFilter, RespResourceOkrugFilter
 from ..forms import AddXMLForm
 from ..models import Region, Okrug
-from ..utils import (get_instance_choices, send_mail,
-                     get_cur_time, create_zip_archive_mem)
+from ..tasks import aparse_xml
+from ..utils import get_instance_choices
 from ..views import forms_placeholders as dictionary
-from ..xml_parser import XMLHandler
 
 SEARCH_MODEL_TEXT = 'Рег. № ОКИИ или реквизиты док-та'
 
@@ -110,49 +109,25 @@ class ResponseModelView(BaseModelView):
         if form.validate_on_submit() and request.method == 'POST':
             files = request.files.getlist("files")
             email = form.email.data
-            log_names = []
             if not all([file.mimetype == 'text/xml' for file in files]):
                 flash('Убедитесь, что выбраны файлы с расширением .xml',
                       category="error")
                 return redirect(request.url)
 
-            cur_time = get_cur_time()
-
+            file_paths = []
             for file in files:
                 file_name = secure_filename(file.filename)
                 file_path = os.path.join(app.config['UPLOAD_PATH'], file_name)
-
                 try:
                     file.save(file_path)
                 except OSError:
                     flash('Не удалось сохранить файл(-ы)',
                           category="error")
                     return redirect(request.url)
+                else:
+                    file_paths.append((file_path, file_name))
 
-                log_file_name = f'{file_path}-{cur_time}.log'
-                handler = XMLHandler(
-                    file=file_path, schema=app.config['SCHEMA_PATH'],
-                    logger_file=log_file_name, logger_name=file_name)
-                handler.handle()
-                log_names.append(log_file_name)
-            archive = create_zip_archive_mem(log_names)
-            archive_name = f'{cur_time}-results.zip'
-            to = app.config['BOSS_EMAIL_FOR_NOTIFY']
-
-            if email not in to:
-                to.append(email)
-
-            send_mail(
-                user=app.config['SMTP_USER'],
-                password=app.config['SMTP_PASSWORD'],
-                send_to=to,
-                subject='CERT-ECOSYSTEM - результаты загрузки XML-файла',
-                text='Направляю результаты загрузки XML-файла',
-                host=app.config['SMTP_HOST'],
-                port=app.config['SMTP_PORT'],
-                file_binary=archive,
-                file_binary_name=archive_name
-            )
+            aparse_xml.delay(file_paths=file_paths, email=email)
             flash('Информация из XML-файла(-ов) обработана, проверьте '
                   'электронную почту через некоторое время',
                   category='success')
