@@ -1,3 +1,4 @@
+import os.path
 from os import environ, path
 
 from celery.schedules import crontab
@@ -25,6 +26,8 @@ class Config:
         STATIC_FOLDER,
         'organizations'
     )
+    MIGRATION_DIR = os.path.join(BASE_DIR, 'migrations')
+
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
     MAX_CONTENT_LENGTH = 100 * 1024 * 1024

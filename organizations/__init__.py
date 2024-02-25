@@ -121,7 +121,7 @@ def create_app() -> Flask:
     app.config.from_object(conf_types.get(app.config['ENV']))
     create_celery(app)
     db.init_app(app)
-    migrate.init_app(app, db)
+    migrate.init_app(app, db, directory=app.config['MIGRATION_DIR'])
     init_admin(app)
     babel.init_app(app)
     app.cli.add_command(index)
