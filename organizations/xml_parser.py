@@ -211,17 +211,16 @@ class XMLParser:
                         Organization.ogrn == ogrn)
                 .first())
 
-    def get_instance_from_db_or_create(
-            self, model,
-            name: str,
-            owner: int):
+    def get_instance_from_db_or_create(self, model, **kwargs):
         """Возвращает сущность из БД или создает ее."""
+        name = kwargs.get('name')
 
         self.logger.info(f'Ищу {model.__name__} {name} в БД')
+
         instance = (
             db.session
             .query(model)
-            .filter(model.name == name, model.org_owner == owner)
+            .filter_by(**kwargs)
             .first()
         )
         if instance:
@@ -229,7 +228,7 @@ class XMLParser:
             return instance
         self.logger.info(f'{model.__name__} {name} не найден в БД')
         self.logger.info(f'Создаю сущность {model.__name__} {name}')
-        return model(name=name, org_owner=owner)
+        return model(**kwargs)
 
     def get_org_from_egrul(self, inn: str) -> Optional[Organization]:
         """Возвращает объект организации из ЕГРЮЛ API или None."""
@@ -376,7 +375,8 @@ class XMLParser:
                                              org=owner)
         owner.com_contacts = cent_contacts
         db.session.add(owner)
-        cert = self.get_instance_from_db_or_create(Cert, cent_name, owner)
+        cert = self.get_instance_from_db_or_create(
+            Cert, name=cent_name, org_owner=owner)
         cert.date_actual_resp, cert.type = date_form, cent_klass
         db.session.add(cert)
 
@@ -424,9 +424,6 @@ class XMLParser:
 
             for res_root in res_roots:
                 res_name = res_root.attrib['Наим']
-                res = self.get_instance_from_db_or_create(
-                    Resource, name=res_name, owner=zone_org)
-
                 kii_info = self.parse_kii(res_root.find('СвКИИ'))
 
                 res_formatted_address = []
@@ -437,10 +434,17 @@ class XMLParser:
                     res_formatted_address.append(res_address_info['address'])
                     res_codes.append(res_address_info['region_code'])
                 res_formatted_address = "; ".join(res_formatted_address)
-                res.factual_addresses = res_formatted_address
-                res.is_okii = kii_info['is_okii']
-                res.fstec_reg_number = kii_info['fstec_reg_number']
-                res.category = kii_info['category']
+                res_fstec_reg_number = kii_info['fstec_reg_number']
+                res_category = kii_info['category']
+                res_is_okii = kii_info['is_okii']
+
+                res = self.get_instance_from_db_or_create(
+                    Resource, name=res_name, org_owner=zone_org,
+                    factual_addresses=res_formatted_address,
+                    fstec_reg_number=res_fstec_reg_number,
+                    category=res_category,
+                    is_okii=res_is_okii)
+
                 res.regions = self.get_regions_from_xml(region_codes=res_codes)
                 db.session.add(res)
                 self.logger.info(f'Ресурс {res_name} успешно обработан')
