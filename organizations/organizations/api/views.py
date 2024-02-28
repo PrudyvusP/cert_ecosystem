@@ -17,7 +17,8 @@ def get_orgs_docs_by_region(region_id, doc_id) -> wrappers.Response:
         db.session
         .query(Organization.inn, Organization.kpp,
                Organization.full_name, OrgAdmDocOrganization.props,
-               OrgAdmDocOrganization.date_approved,
+               func.DATE(OrgAdmDocOrganization.date_approved).label(
+                   'date_approved'),
                OrgAdmDocOrganization.comment)
         .join(OrgAdmDocOrganization, Organization.org_adm_doc)
         .filter(OrgAdmDocOrganization.orgadm_id == doc_id)
