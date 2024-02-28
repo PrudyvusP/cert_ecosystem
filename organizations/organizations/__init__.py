@@ -77,6 +77,10 @@ def create_app() -> Flask:
     create_celery(app)
     db.init_app(app)
     migrate.init_app(app, db)
+    app.extensions["db"] = db
+    with app.app_context():
+        from .api import api
+        app.register_blueprint(api)
     init_admin(app)
     babel.init_app(app)
     app.cli.add_command(index)
