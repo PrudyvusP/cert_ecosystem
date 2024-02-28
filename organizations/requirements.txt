@@ -1,5 +1,5 @@
 alembic==1.7.7
-amqp==5.2.0
+amqp==5.1.0
 attrs==21.4.0
 Babel==2.9.1
 backports.zoneinfo==0.2.1
@@ -10,7 +10,7 @@ charset-normalizer==2.0.12
 click==8.0.4
 click-didyoumean==0.3.0
 click-plugins==1.1.1
-click-repl==0.3.0
+click-repl==0.2.0
 dbfread==2.0.7
 defusedxml==0.7.1
 docxcompose==1.3.4
@@ -31,7 +31,7 @@ importlib-resources==5.4.0
 iniconfig==1.1.1
 itsdangerous==2.1.1
 Jinja2==3.0.3
-kombu==5.3.5
+kombu==5.2.4
 lxml==4.8.0
 Mako==1.2.0
 MarkupPy==1.14
@@ -41,7 +41,7 @@ odfpy==1.4.1
 packaging==21.3
 Petrovich==2.0.1
 pluggy==1.0.0
-prompt-toolkit==3.0.43
+prompt-toolkit==3.0.29
 psycopg2-binary==2.9.3
 py==1.11.0
 pycdlib==1.11.0
@@ -62,8 +62,8 @@ tomli==2.0.1
 typing_extensions==4.1.1
 tzdata==2024.1
 urllib3==1.26.9
-vine==5.1.0
-wcwidth==0.2.13
+vine==5.0.0
+wcwidth==0.2.5
 Werkzeug==2.0.3
 WTForms==3.0.1
 zipp==3.7.0
