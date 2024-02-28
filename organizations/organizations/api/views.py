@@ -7,7 +7,7 @@ api = Blueprint('api', __name__, url_prefix='/api')
 db = app.extensions['db']
 
 
-@api.route('/regions/<region_id>/docs/<doc_id>/',
+@api.route('/regions/<int:region_id>/docs/<int:doc_id>/',
            methods=['GET', 'HEAD', 'OPTIONS'])
 def get_orgs_docs_by_region(region_id, doc_id) -> wrappers.Response:
     """Возвращает информацию об организациях, расположенных в <region_id>
