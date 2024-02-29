@@ -1,14 +1,19 @@
-from flask import Blueprint, Response, current_app as app
+import json
+import re
+from datetime import date, datetime
+
+from flask import Blueprint, Response
+from flask import current_app as app
+from flask import request
 from sqlalchemy import func
 
-from ..models import Organization, OrgAdmDocOrganization
+from ..models import OrgAdmDocOrganization, Organization
 
 api = Blueprint('api', __name__, url_prefix='/api')
 db = app.extensions['db']
 
-import json
-from datetime import date
-from datetime import datetime
+regions_pattern = re.compile(r'\b\d{1,2}\b')
+docs_pattern = re.compile(r'\b\d+\b')
 
 
 class JsonExtendEncoder(json.JSONEncoder):
@@ -25,34 +30,44 @@ class JsonExtendEncoder(json.JSONEncoder):
             return json.JSONEncoder.default(self, obj)
 
 
-@api.route('/regions/<int:region_id>/docs/<int:doc_id>/',
+@api.route('/organizations/with_docs/',
            methods=['GET', 'HEAD', 'OPTIONS'])
-def get_orgs_docs_by_region(region_id, doc_id):
+def get_orgs_docs_by_region():
     """Возвращает информацию об организациях, расположенных в <region_id>
     и имеющих документ <doc_id>."""
+    regions = request.args.get('regions')
+    docs = request.args.get('docs')
 
-    docs = (
+    orgs = (
         db.session
         .query(Organization.inn, Organization.kpp,
                Organization.full_name, OrgAdmDocOrganization.props,
                OrgAdmDocOrganization.date_approved,
                OrgAdmDocOrganization.comment)
         .join(OrgAdmDocOrganization, Organization.org_adm_doc)
-        .filter(OrgAdmDocOrganization.orgadm_id == doc_id)
-        .filter(Organization.region_id == region_id)
-        .order_by(Organization.full_name)
-        .all()
     )
-    docs_count = (
+
+    count = (
         db.session
         .query(func.count(Organization.org_id))
         .join(OrgAdmDocOrganization, Organization.org_adm_doc)
-        .filter(OrgAdmDocOrganization.orgadm_id == doc_id)
-        .filter(Organization.region_id == region_id)
-        .scalar()
     )
-    response = json.dumps({"count": docs_count,
-                           "results": [dict(doc) for doc in docs]},
+
+    if regions and re.search(regions_pattern, regions):
+        regions = [int(r) for r in re.findall(regions_pattern, regions)]
+        orgs = orgs.filter(Organization.region_id.in_(regions))
+        count = count.filter(Organization.region_id.in_(regions))
+
+    if docs and re.search(docs_pattern, docs):
+        search_docs = re.findall(docs_pattern, docs)
+        orgs = orgs.filter(OrgAdmDocOrganization.orgadm_id.in_(search_docs))
+        count = count.filter(OrgAdmDocOrganization.orgadm_id.in_(search_docs))
+
+    count = count.scalar()
+    orgs = orgs.order_by(Organization.full_name).all()
+
+    response = json.dumps({"count": count,
+                           "results": [dict(org) for org in orgs]},
                           cls=JsonExtendEncoder)
     return Response(response=response,
                     mimetype='application/json')
