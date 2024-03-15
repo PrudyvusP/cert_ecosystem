@@ -4,7 +4,7 @@ from celery import Celery, Task
 from flask import Flask
 from flask_admin import Admin
 
-from .commands import index, parse
+from .commands import index, parse, mkdirs
 from .config import DevConfig, ProdConfig, TestConfig
 from .extentions import db, babel, migrate
 from .models import (Cert, Organization, Message, MethodicalDoc, OrgAdmDoc,
@@ -19,6 +19,7 @@ def init_admin(app: Flask) -> None:
     admin = Admin(name='GP',
                   template_mode='bootstrap4',
                   url='/',
+                  static_url_path='/static/admin',
                   base_template='admin/custom_master.html',
                   index_view=HomeView(name='Главная',
                                       template='admin/index.html',
@@ -85,7 +86,7 @@ def create_app() -> Flask:
     babel.init_app(app)
     app.cli.add_command(index)
     app.cli.add_command(parse)
-
+    app.cli.add_command(mkdirs)
     @app.shell_context_processor
     def make_shell_context():
         return {'Organization': Organization, 'db': db}

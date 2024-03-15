@@ -1,6 +1,9 @@
+import os
+import uuid
+
 import click
 from flask.cli import with_appcontext
-
+from flask import current_app
 from .pindex_to_db import fill_db_with_addresses_delta, find_db_indexes
 from .utils import get_cur_time
 from .xml_parser import XMLHandler
@@ -67,3 +70,13 @@ def parse(ctx, schema, file):
         click.echo("Успех")
     else:
         click.echo("Неудача. Смотри лог")
+
+
+@click.command()
+@click.pass_context
+@with_appcontext
+def mkdirs(ctx):
+    dir = current_app.config['BUSINESS_LOGIC']['ORG_FILES_DIR']
+    prefixes = set([str(uuid.uuid4())[:2].upper() for _ in range(100000)])
+    for prefix in prefixes:
+        os.makedirs(os.path.join(dir, prefix), exist_ok=True)
