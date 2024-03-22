@@ -18,15 +18,6 @@ services:
       retries: 3
       start_period: 1s
 
-  smtp-test-server:
-    container_name: "cert-smtp"
-    image: python:3.8
-    command: sh -c "python -u -m smtpd -c DebuggingServer -n 0.0.0.0:8025 > /var/log/smtp.log 2>&1"
-    ports:
-      - "1025:1025"
-    volumes:
-      - ./smtp_logs:/var/log
-
   backend:
     container_name: "cert-backend"
     build:
