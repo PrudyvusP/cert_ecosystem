@@ -3,7 +3,6 @@ import shutil
 import zipfile
 from datetime import date
 
-import flask
 import pycdlib
 from babel.dates import format_date
 from docxtpl import DocxTemplate

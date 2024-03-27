@@ -230,3 +230,10 @@ def create_zip_archive_mem(files):
                 zf.writestr(data, f.read())
     memory_archive.seek(0)
     return memory_archive.getvalue()
+
+
+def make_org_dirs(path):
+    os.makedirs(path, exist_ok=True)
+    prefixes = set([str(uuid.uuid4())[:2].upper() for _ in range(100000)])
+    for prefix in prefixes:
+        os.makedirs(os.path.join(path, prefix), exist_ok=True)

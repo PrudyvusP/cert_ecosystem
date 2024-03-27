@@ -4,11 +4,12 @@ from celery import Celery, Task
 from flask import Flask
 from flask_admin import Admin
 
-from .commands import index, parse, mkdirs
+from .commands import index, parse
 from .config import DevConfig, ProdConfig, TestConfig
 from .extentions import db, babel, migrate
 from .models import (Cert, Organization, Message, MethodicalDoc, OrgAdmDoc,
                      Resource, Responsibility)
+from .utils import make_org_dirs
 from .views import (CertModelView, HomeView, MessageModelView,
                     MethodDocModelView, OrgAdmDocModelView,
                     OrganizationModelView, ResourceModelView,
@@ -75,6 +76,7 @@ def create_app() -> Flask:
     app.config.from_object(conf_types.get(app.config['ENV']))
     app.template_folder = app.config['TEMPLATES_PATH']
     app.static_folder = app.config['STATIC_PATH']
+    make_org_dirs(app.config['BUSINESS_LOGIC']['ORG_FILES_DIR'])
     create_celery(app)
     db.init_app(app)
     migrate.init_app(app, db)
@@ -86,7 +88,7 @@ def create_app() -> Flask:
     babel.init_app(app)
     app.cli.add_command(index)
     app.cli.add_command(parse)
-    app.cli.add_command(mkdirs)
+
     @app.shell_context_processor
     def make_shell_context():
         return {'Organization': Organization, 'db': db}

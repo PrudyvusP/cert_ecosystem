@@ -20,7 +20,7 @@ services:
 
   smtp-test-server:
     container_name: "cert-smtp"
-    image: python:3.8
+    image: python:3.8-slim
     command: sh -c "python -u -m smtpd -c DebuggingServer -n 0.0.0.0:8025 > /var/log/smtp.log 2>&1"
     ports:
       - "1025:1025"
