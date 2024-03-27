@@ -9,6 +9,7 @@ from .config import DevConfig, ProdConfig, TestConfig
 from .extentions import db, babel, migrate
 from .models import (Cert, Organization, Message, MethodicalDoc, OrgAdmDoc,
                      Resource, Responsibility)
+from .utils import make_org_dirs
 from .views import (CertModelView, HomeView, MessageModelView,
                     MethodDocModelView, OrgAdmDocModelView,
                     OrganizationModelView, ResourceModelView,
@@ -19,6 +20,7 @@ def init_admin(app: Flask) -> None:
     admin = Admin(name='GP',
                   template_mode='bootstrap4',
                   url='/',
+                  static_url_path='/static/admin',
                   base_template='admin/custom_master.html',
                   index_view=HomeView(name='Главная',
                                       template='admin/index.html',
@@ -74,6 +76,7 @@ def create_app() -> Flask:
     app.config.from_object(conf_types.get(app.config['ENV']))
     app.template_folder = app.config['TEMPLATES_PATH']
     app.static_folder = app.config['STATIC_PATH']
+    make_org_dirs(app.config['BUSINESS_LOGIC']['ORG_FILES_DIR'])
     create_celery(app)
     db.init_app(app)
     migrate.init_app(app, db)

@@ -368,11 +368,13 @@ class OrganizationModelView(BaseModelView):
         """Возвращает файл документа организации."""
         org = db.session.query(Organization).get_or_404(org_id)
         doc = OrgAdmDoc.query.get_or_404(doc_id)
-        file_path = os.path.join(
-            app.config['BUSINESS_LOGIC']['ORG_FILES_DIR'],
-            org.first_two_uuid_symb,
-            org.uuid,
-            create_dot_pdf(doc.name_prefix)
+        file_path = os.path.abspath(
+            os.path.join(
+                app.config['BUSINESS_LOGIC']['ORG_FILES_DIR'],
+                org.first_two_uuid_symb,
+                org.uuid,
+                create_dot_pdf(doc.name_prefix)
+            )
         )
         attach_file_name = (f'{date.today()}'
                             f'-{org.short_name[:FILENAME_CONST]}'
@@ -542,7 +544,7 @@ class OrganizationModelView(BaseModelView):
             org.boss_position = recipient_position
             org.mailing_address = recipient_address
             docx = DocxTemplate(
-                app.config['BUSINESS_LOGIC']['DOCX_TEMPLATE_PATH'])
+                app.config['BUSINESS_LOGIC']['METHOD_DOC_TEMPLATE'])
 
             if [doc.is_conf for doc in chosen_method_docs if doc.is_conf]:
                 letter_conf_text = METHOD_DOC_CONF_TEXT

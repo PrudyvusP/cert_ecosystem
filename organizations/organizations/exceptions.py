@@ -24,3 +24,7 @@ class MethodicalDocWrongFileNameError(Exception):
 
 class SMTPAuthError(Exception):
     pass
+
+
+class SMTPNotAssignError(Exception):
+    pass

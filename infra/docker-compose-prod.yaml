@@ -1,0 +1,82 @@
+version: "3.4"
+
+services:
+  db:
+    container_name: "cert-db"
+    image: postgres:13.0-alpine
+    restart: always
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    env_file:
+      - ./.env
+    environment:
+      - TZ=Europe/Moscow
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${DB_NAME}" ]
+      interval: 3s
+      timeout: 5s
+      retries: 3
+      start_period: 1s
+
+  backend:
+    container_name: "cert-backend"
+    build:
+      context: ../organizations
+      dockerfile: Dockerfile
+    restart: always
+    volumes:
+      - ${METHOD_DOCS_PATH}:/app/${METHOD_DOCS_MOUNT_PATH}
+      - ${DOCX_TEMPLATE_PATH}:/app/${DOCX_TEMPLATE_MOUNT_PATH}
+      - ${ORG_FILES_PATH}:/app/${ORG_FILES_MOUNT_PATH}
+      - flask_admin_static:/usr/local/lib/python3.8/site-packages/flask_admin/static
+    depends_on:
+      - db
+    env_file:
+      - ./.env
+    environment:
+      - TZ=Europe/Moscow
+
+  nginx:
+    container_name: "cert-proxy"
+    image: nginx:1.21.3-alpine
+    restart: always
+    ports:
+      - "28967:80"
+    volumes:
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
+      - flask_admin_static:/var/html/static/admin/
+    depends_on:
+      - backend
+    environment:
+      - TZ=Europe/Moscow
+
+  rabbitmq:
+    container_name: "cert-broker"
+    image: rabbitmq:3.13-management-alpine
+    hostname: rabbitmq
+    restart: always
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      - TZ=Europe/Moscow
+
+  worker:
+    container_name: "cert-worker"
+    build:
+      context: ../organizations
+    hostname: worker
+    restart: always
+    entrypoint: celery
+    command: -A make_celery worker -B --loglevel INFO
+    depends_on:
+      - rabbitmq
+      - backend
+    env_file:
+      - ./.env
+    environment:
+      - TZ=Europe/Moscow
+
+volumes:
+  postgres_data:
+  flask_admin_static:

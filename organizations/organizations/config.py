@@ -13,7 +13,6 @@ class Config:
 
     DEBUG = False
     SECRET_KEY = os.environ.get('SECRET_KEY')
-
     BABEL_DEFAULT_LOCALE = 'ru'
     FLASK_ADMIN_FLUID_LAYOUT = True
     FLASK_ADMIN_SWATCH = 'journal'
@@ -24,13 +23,21 @@ class Config:
     TEMPLATES_PATH = os.path.join(BASE_DIR, 'templates')
     UPLOAD_PATH = os.path.join(BASE_DIR, STATIC_PATH, 'uploads')
 
+    METHOD_DOC_TEMPLATE_PATH = (os.environ.get('DOCX_TEMPLATE_MOUNT_PATH')
+                                or os.environ.get('DOCX_TEMPLATE_PATH')
+                                )
+
     BUSINESS_LOGIC = {
-        "DOCX_TEMPLATE_PATH": os.environ.get('DOCX_TEMPLATE_PATH'),
+        "METHOD_DOC_TEMPLATE":
+            os.path.join(METHOD_DOC_TEMPLATE_PATH, 'method.docx'),
         "EGRUL_SERVICE_URL": os.environ.get(
             'EGRUL_SERVICE_URL', 'http://localhost:28961/'),
-        "ORG_FILES_DIR": os.path.join(
-            BASE_DIR, STATIC_PATH, 'organizations'),
-        "METHOD_DOCS_PATH": os.environ.get('METHOD_DOCS_PATH', '/tmp/'),
+        "ORG_FILES_DIR": (os.environ.get('ORG_FILES_MOUNT_PATH')
+                          or os.environ.get('ORG_FILES_PATH', '/tmp/')
+                          ),
+        "METHOD_DOCS_PATH": (os.environ.get('METHOD_DOCS_MOUNT_PATH')
+                             or os.environ.get('METHOD_DOCS_PATH', '/tmp/')
+                             ),
         "XSD_SCHEMA_PATH": os.path.join(UPLOAD_PATH, 'CERT-ZONE-DATA-v-00.xsd')
     }
 

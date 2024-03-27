@@ -22,7 +22,7 @@ from requests.exceptions import InvalidJSONError
 from sqlalchemy import func
 
 from .exceptions import (EgrulApiWrongFormatError, ModelAttributeError,
-                         SMTPAuthError)
+                         SMTPAuthError, SMTPNotAssignError)
 
 INN_PATTERN = re.compile(r'(?<!\d)\d{10}(?!\d)')
 OGRN_PATTERN = re.compile(r'(?<!\d)\d{13}(?!\d)')
@@ -144,12 +144,15 @@ def send_mail(user: str,
         part.add_header('Content-Disposition',
                         'attachment; filename="%s"' % file_binary_name)
         message.attach(part)
-    with smtplib.SMTP(host, port) as server:
-        try:
-            server.login(user, password)
-        except Exception:
-            raise SMTPAuthError('')
+    try:
+        server = smtplib.SMTP(host, port)
+        server.login(user, password)
         server.sendmail(user, send_to, message.as_string())
+        server.close()
+    except OSError:
+        raise SMTPNotAssignError('SMTP-сервер недоступен')
+    except Exception:
+        raise SMTPAuthError('Ошибка авторизации в SMTP-сервере')
 
 
 def get_api_url(url_to_go: str) -> str:
@@ -227,3 +230,10 @@ def create_zip_archive_mem(files):
                 zf.writestr(data, f.read())
     memory_archive.seek(0)
     return memory_archive.getvalue()
+
+
+def make_org_dirs(path):
+    os.makedirs(path, exist_ok=True)
+    prefixes = set([str(uuid.uuid4())[:2].upper() for _ in range(100000)])
+    for prefix in prefixes:
+        os.makedirs(os.path.join(path, prefix), exist_ok=True)
