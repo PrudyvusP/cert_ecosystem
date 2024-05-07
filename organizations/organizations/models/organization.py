@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from ..extentions import db
 from ..utils import (generate_uuid, get_alpha_num_string,
                      get_string_wo_special_symbols)
@@ -8,6 +10,11 @@ from .organization_message import organizations_messages
 class Organization(DateAddedCreatedMixin, db.Model):
     """Модель организации."""
     __tablename__ = "organizations"
+
+    date_added = db.Column(db.DateTime, nullable=False,
+                           default=datetime.today)
+    date_updated = db.Column(db.DateTime, default=datetime.today,
+                             onupdate=datetime.today)
     org_id = db.Column(db.Integer, primary_key=True)
 
     db_name = db.Column(db.Text, nullable=False, index=True)
