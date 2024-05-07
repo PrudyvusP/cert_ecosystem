@@ -89,9 +89,7 @@ class OrganizationModelView(BaseModelView):
     list_template = 'admin/org_list.html'
 
     column_default_sort = [('date_updated', True),
-                           ('date_added', True),
-                           ('full_name', False),
-                           ('inn', False)]
+                           ('full_name', False)]
 
     column_descriptions = dictionary.organization_fields_descriptions
     column_editable_list = ['contacts']
