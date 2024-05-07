@@ -92,19 +92,17 @@ class OrganizationModelView(BaseModelView):
                            ('full_name', False)]
 
     column_descriptions = dictionary.organization_fields_descriptions
-    column_editable_list = ['contacts']
-    column_exclude_list = ['short_name', 'uuid', 'id', 'date_added',
-                           'date_updated', 'region_id', 'ogrn', 'db_name',
-                           'agreement_unit', 'boss_fio', 'is_gov',
-                           'boss_position', 'factual_address',
-                           'mailing_address',
-                           'is_military', 'is_active']
+
+    column_list = ['full_name', 'inn', 'kpp', 'date_agreement', 'region']
+
+
     column_filters = ('db_name',
                       OrgHasAgreementFilter(
                           Organization.date_agreement,
                           'Наличие соглашения о сот-ве'
                       ),
-                      'is_gov'
+                      'is_gov',
+                      'is_250'
                       )
 
     column_formatters = {
@@ -150,7 +148,6 @@ class OrganizationModelView(BaseModelView):
         "contacts": {"description": None},
         "agreement_unit": {"description": None},
         "com_contacts": {"description": None}
-
     }
 
     form_rules = (
@@ -162,7 +159,7 @@ class OrganizationModelView(BaseModelView):
                  'Контактные данные'),
         FieldSet(('date_agreement', 'agreement_unit'),
                  'Соглашение о сотрудничестве'),
-        FieldSet(('is_gov', 'is_military'),
+        FieldSet(('is_gov', 'is_military', 'is_250'),
                  'Характеристики'),
         FieldSet(('com_contacts',), 'Контактные данные NEW')
     )

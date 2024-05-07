@@ -14,10 +14,6 @@ class Region(db.Model):
                                        ondelete="SET NULL")
                          )
 
-    organizations = db.relationship("Organization",
-                                    backref="region",
-                                    passive_deletes=True)
-
     addresses = db.relationship("Address",
                                 backref="region",
                                 passive_deletes=True)
