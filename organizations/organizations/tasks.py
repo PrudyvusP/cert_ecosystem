@@ -1,3 +1,4 @@
+import copy
 import datetime
 from typing import List, Tuple
 
@@ -29,7 +30,7 @@ def aparse_xml(file_paths, email):
     archive_name = f'{cur_time}-results.zip'
 
     email_settings = app.config['EMAIL']
-    to = email_settings['BOSS_EMAIL_FOR_NOTIFY']
+    to = copy.deepcopy(email_settings['BOSS_EMAIL_FOR_NOTIFY'])
     if email not in to:
         to.append(email)
     send_mail(
