@@ -1,5 +1,7 @@
 from datetime import datetime
 
+from sqlalchemy.sql import false
+
 from ..extentions import db
 from ..utils import (generate_uuid, get_alpha_num_string,
                      get_string_wo_special_symbols)
@@ -33,6 +35,7 @@ class Organization(DateAddedCreatedMixin, db.Model):
     is_gov = db.Column(db.Boolean, default=False)
     is_military = db.Column(db.Boolean, default=False)
     is_active = db.Column(db.Boolean, default=True)
+    is_250 = db.Column(db.Boolean, server_default=false(), default=False)
 
     uuid = db.Column(db.String(36), default=generate_uuid,
                      unique=True)
@@ -41,6 +44,8 @@ class Organization(DateAddedCreatedMixin, db.Model):
                           db.ForeignKey("regions.region_id",
                                         ondelete="SET NULL")
                           )
+
+    region = db.relationship("Region", backref="organizations")
 
     soft_delete_condition = ("and_(Organization.org_id==Resource.org_id,"
                              " Resource.is_active==True)")
@@ -69,28 +74,12 @@ class Organization(DateAddedCreatedMixin, db.Model):
     certs = db.relationship("Cert",
                             backref="org_owner")
 
-    def __init__(self, full_name, short_name=None, ogrn=None, inn=None,
-                 factual_address=None, boss_position=None, boss_fio=None,
-                 contacts=None, date_agreement=None, agreement_unit=None,
-                 is_gov=False, is_military=False,
-                 is_active=True, region=None, kpp=None):
-        self.full_name = full_name.upper()
-        self.short_name = short_name.upper()
-        self.ogrn = ogrn
-        self.inn = inn
-        self.kpp = kpp
-        self.factual_address = factual_address
-        self.boss_position = boss_position
-        self.boss_fio = boss_fio
-        self.contacts = contacts
-        self.date_agreement = date_agreement
-        self.agreement_unit = agreement_unit
-        self.is_gov = is_gov
-        self.is_military = is_military
-        self.is_active = is_active
-        self.region = region
-
-        self.db_name = get_alpha_num_string(full_name)
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.db_name = get_alpha_num_string(kwargs.get('full_name'))
+        self.short_name = kwargs.get('short_name').upper() if kwargs.get(
+            'short_name') else None
+        self.full_name = kwargs.get('full_name')
 
     @property
     def first_two_uuid_symb(self):
@@ -100,7 +89,7 @@ class Organization(DateAddedCreatedMixin, db.Model):
         return get_string_wo_special_symbols(self.short_name[:60])
 
     def __repr__(self):
-        name = self.full_name[:88]
+        name = self.full_name[:100]
         if self.inn or self.kpp:
             return f"{name} (ИНН/КПП {self.inn}/{self.kpp})"
         return name

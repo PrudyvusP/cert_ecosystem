@@ -341,10 +341,9 @@ def fill_demo_data() -> None:
         )
         db.session.add(new_org)
 
+    orgs = db.session.query(Organization).all()
     for resource in resource_data:
-        resource_owner = (db.session.query(Organization)
-                          .get(random.randint(1, 9))
-                          )
+        resource_owner = random.choice(orgs)
         is_okii = resource.get("is_okii", False)
         res_industries = []
         res_regions = []
@@ -402,8 +401,7 @@ def fill_demo_data() -> None:
     message.organizations.append(resource_owner)
 
     for message in messages_data:
-        random_id = random.randint(1, 7)
-        receiver_sender = db.session.query(Organization).get(random_id)
+        receiver_sender = random.choice(orgs)
         new_message = Message(
             date_inbox_approved=message.get("date_inbox_approved"),
             number_inbox_approved=message.get("number_inbox_approved"),
